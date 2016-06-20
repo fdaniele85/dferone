@@ -125,7 +125,7 @@ public:
 	}
 #endif
 
-		return std::move(bestPool[0]);
+		return bestPool.pop();
 	}
 
 	GRASP &setComparator(std::unique_ptr<Comparator> &&comparator) {
