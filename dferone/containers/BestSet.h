@@ -72,6 +72,10 @@ public:
 		return true;
 	}
 
+	value_type &&operator[](size_type i) {
+		return std::move(elements_[i]);
+	}
+
 	const value_type &operator[](size_type i) const {
 		return elements_[i];
 	}
