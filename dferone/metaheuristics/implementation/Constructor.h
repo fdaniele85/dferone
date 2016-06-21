@@ -10,6 +10,10 @@
 
 #include <memory>
 
+namespace dferone {
+namespace metaheuristics {
+namespace implementation {
+
 template <typename Instance, typename Solution, typename Rnd>
 class Constructor {
 public:
@@ -17,6 +21,9 @@ public:
 	virtual std::unique_ptr<Solution> operator()(const Instance &instance, Rnd &mt) = 0;
 };
 
+}
+}
+}
 
 
 #endif /* IMPLEMENTATION_CONSTRUCTOR_H_ */
