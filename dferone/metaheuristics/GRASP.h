@@ -41,7 +41,7 @@ public:
 		threads = omp_get_max_threads();
 #endif
 
-		std::vector<std::seed_seq::result_type> seeds(threads);
+		std::vector<std::seed_seq::result_type> seeds(threads+1);
 
 		ss.generate(std::begin(seeds), std::end(seeds));
 
