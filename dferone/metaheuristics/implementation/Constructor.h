@@ -18,7 +18,7 @@ template <typename Instance, typename Solution, typename Rnd>
 class Constructor {
 public:
 	virtual ~Constructor() {};
-	virtual std::unique_ptr<Solution> operator()(const Instance &instance, Rnd &mt) = 0;
+	virtual std::unique_ptr<Solution> operator()(const Instance &instance, Rnd &mt, double alpha) = 0;
 };
 
 }

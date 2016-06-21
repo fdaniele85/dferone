@@ -35,10 +35,10 @@ public:
 	GRASP(unsigned int seed) {
 		std::seed_seq ss { seed };
 
-		unsigned int threads = 1;
+		threads_ = 1;
 
 #ifdef _OPENMP
-		threads = omp_get_max_threads();
+		threads_ = omp_get_max_threads();
 #endif
 
 		std::vector<std::seed_seq::result_type> seeds(threads+1);
@@ -78,6 +78,8 @@ public:
 #endif
 		bool stop = false;
 
+		std::uniform_real_distribution<> alphaDistribution(0, 1);
+
 		int currentThread = 0;
 #ifdef _OPENMP
 		currentThread = omp_get_team_num();
@@ -93,8 +95,9 @@ public:
 			}
 	#endif
 
+			double alpha = alphaDistribution(mt_[threads_]);
 			std::unique_ptr<Solution> currentSolution = (*constructor_)(
-					instance, mt_[currentThread]);
+					instance, mt_[currentThread], alpha);
 
 			if (localSearch_) {
 				(*localSearch_)(*currentSolution);
@@ -200,6 +203,7 @@ private:
 			1 };
 
 	std::vector<std::mt19937_64> mt_;
+	unsigned int threads_;
 
 	class UndefiniedOperator: public std::exception {
 	public:
