@@ -81,6 +81,12 @@ public:
 	/// Rimuove un elemento in O(1)
 	void remove(value_type el) noexcept;
 
+	/// @param it Iteratore all'elemento da rimuovere
+	/// @return Iteratore all'elemento successivo
+	///
+	/// Rimuove un elemento in O(1)
+	const_iterator remove(const_iterator it) noexcept;
+
 	/// Svuota l'insieme
 	inline void reset() noexcept;
 
@@ -276,6 +282,16 @@ void FiniteSet::remove(value_type el) noexcept {
 			swappos(positions_[el], size_);
 		}
 	}
+}
+
+FiniteSet::const_iterator FiniteSet::remove(FiniteSet::const_iterator it) noexcept {
+	// L'iteratore dell'array non viene inficiato,
+	// dato che c'è solo uno scambio di elementi: questo elemento passa
+	// all'indice size_ e l'elementi in quella posizione ora si troverà
+	// in questa posizione
+
+	remove(*it);
+	return it;
 }
 
 bool FiniteSet::contains(value_type el) const noexcept {
