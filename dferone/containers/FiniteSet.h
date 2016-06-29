@@ -55,12 +55,12 @@ public:
 	///
 	/// L'insieme può contenere i valori [0, capacity); i valori
 	/// [0, size) vengono effettivamente inseriti nell'insieme
-	FiniteSet(size_type capacity, size_type size = 0);
-	FiniteSet(size_type capacity, std::initializer_list<value_type> list);
+	inline FiniteSet(size_type capacity, size_type size = 0);
+	inline FiniteSet(size_type capacity, std::initializer_list<value_type> list);
 	/// @}
 	///
 	///
-	~FiniteSet();
+	inline ~FiniteSet();
 
 	/// @return La cardinalità attuale dell'insieme
 	inline size_type size()     const noexcept;
@@ -74,18 +74,18 @@ public:
 	/// @param el L'elemento da inserire
 	///
 	/// Aggiunge un elemento in O(1)
-	void add(value_type el) noexcept;
+	inline void add(value_type el) noexcept;
 
 	/// @param el L'elemento da rimuovere
 	///
 	/// Rimuove un elemento in O(1)
-	void remove(value_type el) noexcept;
+	inline void remove(value_type el) noexcept;
 
 	/// @param it Iteratore all'elemento da rimuovere
 	/// @return Iteratore all'elemento successivo
 	///
 	/// Rimuove un elemento in O(1)
-	const_iterator remove(const_iterator it) noexcept;
+	inline const_iterator remove(const_iterator it) noexcept;
 
 	/// Svuota l'insieme
 	inline void reset() noexcept;
@@ -99,33 +99,33 @@ public:
 
 	/// @param pos La posizione a cui accedere
 	/// @return L'elemento in posizione pos
-	value_type operator[](size_type pos) const noexcept;
-	value_type at(size_type pos) const;
+	inline value_type operator[](size_type pos) const noexcept;
+	inline value_type at(size_type pos) const;
 	/// @}
 
 	/// @param os Output stream su cui stampare
 	/// @param fs Insieme da stmapare
 	/// @return Output stream os
-	friend std::ostream &operator<<(std::ostream &os, const FiniteSet &fs);
+	inline friend std::ostream &operator<<(std::ostream &os, const FiniteSet &fs);
 
 	/// @name Iterazione
 	/// @{
 
 	/// @return Iteratore al primo elemento
-	const_iterator cbegin() const noexcept;
-	const_iterator begin() const noexcept { return cbegin(); }
+	inline const_iterator cbegin() const noexcept;
+	inline const_iterator begin() const noexcept { return cbegin(); }
 
 	/// @return Iteratore alla fine dell'insieme
-	const_iterator cend() const noexcept;
-	const_iterator end() const noexcept { return cend(); }
+	inline const_iterator cend() const noexcept;
+	inline const_iterator end() const noexcept { return cend(); }
 	/// @}
 
 	/// @return L'insieme complemento
-	const ComplementSet &complement() const noexcept { return *cs_; }
+	inline const ComplementSet &complement() const noexcept { return *cs_; }
 
 private:
 	/// Scambia gli elementi in posizione i e j
-	void swappos(size_type i, size_type j) noexcept;
+	inline void swappos(size_type i, size_type j) noexcept;
 
 	/// Elementi dell'insieme
 	std::vector<value_type> elements_;
@@ -150,20 +150,20 @@ public:
 	/// @{
 
 	/// @return Iteratore al primo elemento
-	const_iterator begin() const noexcept {
+	inline const_iterator begin() const noexcept {
 		return fs_->end();
 	}
 
-	const_iterator cbegin() const noexcept {
+	inline const_iterator cbegin() const noexcept {
 		return fs_->cend();
 	}
 
 	/// @return Iteratore alla fine dell'insieme
-	const_iterator end() const noexcept {
+	inline const_iterator end() const noexcept {
 		return fs_->elements_.end();
 	}
 
-	const_iterator cend() const noexcept {
+	inline const_iterator cend() const noexcept {
 		return fs_->elements_.cend();
 	}
 	/// @}
@@ -173,7 +173,7 @@ public:
 	/// @param os Output stream su cui stampare
 	/// @param cs Insieme complemento da stmapare
 	/// @return Output stream os
-	friend std::ostream &operator<<(std::ostream &os, const ComplementSet &cs);
+	inline friend std::ostream &operator<<(std::ostream &os, const ComplementSet &cs);
 
 private:
 	/// Un ComplementSet può essere creato solo dal FiniteSet associato
@@ -196,7 +196,7 @@ namespace std {
 ///
 /// @param fs Insieme da stampare
 /// @return La stringa che lo rappresenta
-std::string to_string(const dferone::containers::FiniteSet &fs) {
+inline std::string to_string(const dferone::containers::FiniteSet &fs) {
 	string s("{ ");
 	auto it = cbegin(fs), end = cend(fs);
 
@@ -215,7 +215,7 @@ std::string to_string(const dferone::containers::FiniteSet &fs) {
 ///
 /// @param cs Insieme complemento da stampare
 /// @return La stringa che lo rappresenta
-std::string to_string(const dferone::containers::FiniteSet::ComplementSet &cs) {
+inline std::string to_string(const dferone::containers::FiniteSet::ComplementSet &cs) {
 	string s("{ ");
 	auto it = cbegin(cs), end = cend(cs);
 

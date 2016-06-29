@@ -48,7 +48,7 @@ public:
 	/// @{
 
 	/// @param capacity La capacità dell'insieme
-	BestSet(size_type capacity) : capacity_(capacity) , elements_(capacity) {};
+	inline BestSet(size_type capacity) : capacity_(capacity) , elements_(capacity) {};
 
 	/// @brief Costruttore di copia
 	BestSet(const BestSet &other) = default;
@@ -57,7 +57,7 @@ public:
 	BestSet(BestSet &&other) = default;
 	/// @}
 
-	size_type size() const {
+	inline size_type size() const {
 		return size_;
 	}
 
@@ -73,7 +73,7 @@ public:
 	///
 	/// @param element L'elemento da inserire
 	/// @return true se l'elemento è stato inserito, false altrimenti
-	bool add(const value_type &element) {
+	inline bool add(const value_type &element) {
 		// Se la size è minore della capacità l'elemento viene inserito in fondo
 		if (size_ < capacity_) {
 			elements_[size_] = element;
@@ -94,7 +94,7 @@ public:
 		return true;
 	}
 
-	bool add(value_type &&element) {
+	inline bool add(value_type &&element) {
 		// Se la size è minore della capacità l'elemento viene inserito in fondo
 		if (size_ < capacity_) {
 			elements_[size_] = std::move(element);
@@ -122,23 +122,23 @@ public:
 	/// @brief Accede ad un elemento dell'insieme
 	/// @param i Posizione dell'emento a cui accedere
 	/// @return L'elemento in posizione i
-	const value_type &operator[](size_type i) const {
+	inline const value_type &operator[](size_type i) const {
 		return elements_[i];
 	}
 
-	const value_type &at(size_type i) const {
+	inline const value_type &at(size_type i) const {
 		return elements_.at(i);
 	}
 
 	/// @brief Accede al miglior elemento dell'insieme
-	const value_type &top() const {
+	inline const value_type &top() const {
 		return elements_[0];
 	}
 
 	/// @brief Estrae un elemento dall'insieme
 	/// @param i Indice dell'insieme da estrarre
 	/// @return L'lemento estratto
-	value_type pop(size_type i = 0) {
+	inline value_type pop(size_type i = 0) {
 
 		// Sposta l'elemento in una variabile d'appoggio
 		value_type ret(std::move(elements_[i]));
@@ -160,20 +160,20 @@ public:
 	/// @{
 
 	/// @brief Iteratore costante al primo elmento
-	const_iterator cbegin() const {
+	inline const_iterator cbegin() const {
 		return std::cbegin(elements_);
 	}
 
-	const_iterator begin() const {
+	inline const_iterator begin() const {
 		return cbegin();
 	}
 
 	/// @brief Iteratore costante alla posizione successiva all'ultimo elemento
-	const_iterator cend() const {
+	inline const_iterator cend() const {
 		return cbegin() + size_;
 	}
 
-	const_iterator end() const {
+	inline const_iterator end() const {
 		return cend();
 	}
 	/// @}
@@ -193,7 +193,7 @@ private:
 	comparator c_;
 
 	/// Riordina gli elemnti dopo un inserimento
-	void sort() {
+	inline void sort() {
 		size_type s = size_ - 1;
 
 		while (s > 0) {
