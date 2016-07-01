@@ -57,6 +57,8 @@ public:
 	/// [0, size) vengono effettivamente inseriti nell'insieme
 	inline FiniteSet(size_type capacity, size_type size = 0);
 	inline FiniteSet(size_type capacity, std::initializer_list<value_type> list);
+	inline FiniteSet(const FiniteSet &other);
+	inline FiniteSet(FiniteSet &&other);
 	/// @}
 	///
 	///
@@ -121,7 +123,15 @@ public:
 	/// @}
 
 	/// @return L'insieme complemento
-	inline const ComplementSet &complement() const noexcept { return *cs_; }
+	inline const ComplementSet &complement() const noexcept { return *m_cs; }
+
+	/// @name Operatori di assegnamento
+	/// @{
+
+	/// @param other Oggetto da copiare/spostare
+	inline FiniteSet &operator=(const FiniteSet &other);
+	inline FiniteSet &operator=(FiniteSet &&other);
+	/// @}
 
 private:
 	/// Scambia gli elementi in posizione i e j
@@ -140,7 +150,7 @@ private:
 	size_type size_;
 
 	/// Puntatore all'insieme complemento
-	std::unique_ptr<ComplementSet> cs_;
+	std::unique_ptr<ComplementSet> m_cs;
 };
 
 /// @brief Permette di iterare sull'insieme complemento
@@ -237,7 +247,7 @@ namespace containers {
 
 
 FiniteSet::FiniteSet(size_type capacity, size_type size) :
-		elements_(capacity), positions_(capacity), capacity_(capacity), size_(size), cs_(new ComplementSet(this)) {
+		elements_(capacity), positions_(capacity), capacity_(capacity), size_(size), m_cs(new ComplementSet(this)) {
 	if (size >= capacity)
 		size_ = capacity;
 
@@ -253,6 +263,13 @@ FiniteSet::FiniteSet(size_type capacity, std::initializer_list<value_type> list)
 		this->add(el);
 	}
 }
+
+FiniteSet::FiniteSet(const FiniteSet &other) : elements_(other.elements_), positions_(other.positions_), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
+}
+
+FiniteSet::FiniteSet(FiniteSet &&other) : elements_(std::move(other.elements_)), positions_(std::move(other.positions_)), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
+}
+
 
 FiniteSet::size_type FiniteSet::size() const noexcept {
 	return size_;
@@ -339,6 +356,21 @@ FiniteSet::value_type FiniteSet::at(FiniteSet::size_type pos) const {
 	return elements_.at(pos);
 }
 
+FiniteSet &FiniteSet::operator=(const FiniteSet &other) {
+	size_ = other.size_;
+	capacity_ = other.capacity_;
+	positions_ = other.positions_;
+	elements_ = other.elements_;
+	return *this;
+}
+
+FiniteSet &FiniteSet::operator=(FiniteSet &&other) {
+	size_ = other.size_;
+	capacity_ = other.capacity_;
+	positions_ = std::move(other.positions_);
+	elements_ = std::move(other.elements_);
+	return *this;
+}
 
 } /* namespace finiteset */
 } /* namespace dferone */
