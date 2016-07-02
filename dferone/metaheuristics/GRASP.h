@@ -30,6 +30,14 @@ template<typename Instance, typename Solution, typename Constructor,
 		typename PathRelinking = implementation::PathRelink<Solution>,
 		typename Comparator = std::less<Solution>>
 class GRASP: public Heuristic<Solution, Instance> {
+private:
+	struct ComparatorPtr {
+		Comparator c_;
+		inline bool operator()(const std::unique_ptr<Solution> &lhs, const std::unique_ptr<Solution> &rhs) {
+			return c_(*lhs, *rhs);
+		}
+	};
+
 public:
 
 	GRASP(unsigned int seed) {
@@ -56,7 +64,6 @@ public:
 	}
 
 	virtual std::unique_ptr<Solution> operator()(const Instance &instance) {
-		std::cout << "stampa questo" << std::endl;
 		if (!constructor_) {
 			throw new UndefiniedOperator("Constructor");
 		}
@@ -65,7 +72,7 @@ public:
 			throw new UndefiniedOperator("StopCriterion");
 		}
 
-		containers::BestSet<std::unique_ptr<Solution>, Comparator> bestPool(
+		containers::BestSet<std::unique_ptr<Solution>, ComparatorPtr> bestPool(
 				bestPoolSize_);
 
 		unsigned int currentIteration = 0;
@@ -187,7 +194,7 @@ public:
 	}
 
 	void setBestPoolSize(
-			typename containers::BestSet<Solution, Comparator>::size_type size) {
+			typename containers::BestSet<Solution, ComparatorPtr>::size_type size) {
 		bestPoolSize_ = size;
 	}
 
@@ -199,7 +206,7 @@ private:
 
 	std::unique_ptr<Comparator> comparator_ { nullptr };
 
-	typename containers::BestSet<Solution, Comparator>::size_type bestPoolSize_ {
+	typename containers::BestSet<Solution, ComparatorPtr>::size_type bestPoolSize_ {
 			1 };
 
 	std::vector<std::mt19937_64> mt_;
