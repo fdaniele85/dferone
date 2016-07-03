@@ -48,7 +48,7 @@ public:
 	/// @{
 
 	/// @param capacity La capacità dell'insieme
-	inline BestSet(size_type capacity) : capacity_(capacity) , elements_(capacity) {};
+	inline BestSet(size_type capacity, comparator c = comparator()) : capacity_(capacity) , elements_(capacity), c_(c) {};
 
 	/// @brief Costruttore di copia
 	BestSet(const BestSet &other) = default;

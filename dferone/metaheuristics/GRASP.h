@@ -15,6 +15,7 @@
 #include <iostream>
 #include <boost/timer/timer.hpp>
 #include <random>
+#include <easylogging++.h>
 
 
 #include "Heuristic.h"
@@ -30,14 +31,6 @@ template<typename Instance, typename Solution, typename Constructor,
 		typename PathRelinking = implementation::PathRelink<Solution>,
 		typename Comparator = std::less<Solution>>
 class GRASP: public Heuristic<Solution, Instance> {
-private:
-	struct ComparatorPtr {
-		Comparator c_;
-		inline bool operator()(const std::unique_ptr<Solution> &lhs, const std::unique_ptr<Solution> &rhs) {
-			return c_(*lhs, *rhs);
-		}
-	};
-
 public:
 
 	GRASP(unsigned int seed) {
@@ -72,8 +65,12 @@ public:
 			throw new UndefiniedOperator("StopCriterion");
 		}
 
-		containers::BestSet<std::unique_ptr<Solution>, ComparatorPtr> bestPool(
-				bestPoolSize_);
+		auto comparator = [&comp = comparator_](const std::unique_ptr<Solution> &lhs, const std::unique_ptr<Solution> &rhs) {
+			return (*comp)(*lhs, *rhs);
+		};
+
+		containers::BestSet<std::unique_ptr<Solution>, decltype(comparator)> bestPool(
+				bestPoolSize_, comparator);
 
 		unsigned int currentIteration = 0;
 
@@ -101,6 +98,8 @@ public:
 #ifdef _OPENMP
 			}
 	#endif
+
+			VLOG(1) << "Iterazione corrente: " << currentIteration;
 
 			double alpha = alphaDistribution(mt_[threads_]);
 			std::unique_ptr<Solution> currentSolution = (*constructor_)(
@@ -194,7 +193,7 @@ public:
 	}
 
 	void setBestPoolSize(
-			typename containers::BestSet<Solution, ComparatorPtr>::size_type size) {
+			typename containers::BestSet<Solution>::size_type size) {
 		bestPoolSize_ = size;
 	}
 
@@ -206,7 +205,7 @@ private:
 
 	std::unique_ptr<Comparator> comparator_ { nullptr };
 
-	typename containers::BestSet<Solution, ComparatorPtr>::size_type bestPoolSize_ {
+	typename containers::BestSet<Solution>::size_type bestPoolSize_ {
 			1 };
 
 	std::vector<std::mt19937_64> mt_;
