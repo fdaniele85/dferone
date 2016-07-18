@@ -18,7 +18,7 @@
 #include <easylogging++.h>
 
 
-#include "Heuristic.h"
+#include "Solver.h"
 #include "implementation/PathRelink.h"
 
 #include "../containers/BestSet.h"
@@ -27,13 +27,12 @@ namespace dferone {
 namespace metaheuristics {
 
 template<typename Instance, typename Solution, typename Constructor,
-		typename LocalSearch, typename StopCriterion,
-		typename PathRelinking = implementation::PathRelink<Solution>,
+		typename LocalSearch, typename PathRelinking = implementation::PathRelink<Solution>,
 		typename Comparator = std::less<Solution>>
-class GRASP: public Heuristic<Solution, Instance> {
+class GRASP: public Solver<Solution, Instance> {
 public:
 
-	GRASP(unsigned int seed) {
+	GRASP(const Instance &instance, unsigned int seed) : Solver<Solution, Instance>(instance) {
 		std::seed_seq ss { seed };
 
 		threads_ = 1;
@@ -56,13 +55,9 @@ public:
 	virtual ~GRASP() {
 	}
 
-	virtual std::unique_ptr<Solution> operator()(const Instance &instance) {
+	SolutionStatus operator()() override {
 		if (!constructor_) {
 			throw new UndefiniedOperator("Constructor");
-		}
-
-		if (!stopCriterion_) {
-			throw new UndefiniedOperator("StopCriterion");
 		}
 
 		auto comparator = [&comp = comparator_](const std::unique_ptr<Solution> &lhs, const std::unique_ptr<Solution> &rhs) {
@@ -86,24 +81,25 @@ public:
 
 		int currentThread = 0;
 #ifdef _OPENMP
-		currentThread = omp_get_team_num();
+		currentThread = omp_get_thread_num();
 #endif
 
 		while (!stop) {
+			int threadIterationt;
 #ifdef _OPENMP
 #pragma omp critical
 			{
 #endif
-			++currentIteration;
+			threadIterationt = ++currentIteration;
 #ifdef _OPENMP
 			}
 	#endif
 
-			VLOG(1) << "Iterazione corrente: " << currentIteration;
+			VLOG(1) << "Iterazione corrente: " << threadIterationt;
 
 			double alpha = alphaDistribution(mt_[threads_]);
 			std::unique_ptr<Solution> currentSolution = (*constructor_)(
-					instance, mt_[currentThread], alpha);
+					this->m_instance, mt_[currentThread], alpha);
 
 			if (localSearch_) {
 				(*localSearch_)(*currentSolution);
@@ -123,9 +119,18 @@ public:
 			{
 #endif
 
-				stop = (*stopCriterion_)(currentIteration,
-					((double) timer.elapsed().wall / 1000000000LL),
-					bestPool[0]->getCost());
+				if (timeLimit_ > 0 && ((double) timer.elapsed().wall / 1000000000LL) > timeLimit_) {
+					LOG_IF(currentThread == 0, DEBUG) << "Esco perché time limit";
+					stop = true;
+				}
+				else if (maxIterations_ > 0 && currentIteration > maxIterations_) {
+					LOG_IF(currentThread == 0, DEBUG) << "Esco perché maxiterations";
+					stop = true;
+				}
+				else if (target_ < std::numeric_limits<double>::infinity() && bestPool[0]->getCost() < target_) {
+					LOG_IF(currentThread == 0, DEBUG) << "Esco perché target";
+					stop = true;
+				}
 #ifdef _OPENMP
 		}
 #endif
@@ -134,7 +139,8 @@ public:
 	}
 #endif
 
-		return bestPool.pop();
+		solution_ = bestPool.pop();
+		return SolutionStatus::kFeasible ;
 	}
 
 	GRASP &setComparator(std::unique_ptr<Comparator> &&comparator) {
@@ -181,26 +187,38 @@ public:
 		return *this;
 	}
 
-	GRASP &setStopCriterion(std::unique_ptr<StopCriterion> &&stopCriterion) {
-		stopCriterion_ = std::move(stopCriterion);
-		return *this;
-	}
-
-	template<typename ... Args>
-	GRASP &setStopCriterion(Args&& ... args) {
-		stopCriterion_.reset(new StopCriterion(std::forward<Args>(args)...));
-		return *this;
-	}
-
 	void setBestPoolSize(
 			typename containers::BestSet<Solution>::size_type size) {
 		bestPoolSize_ = size;
 	}
 
+	std::unique_ptr<Solution> getSolution() override {
+		return std::move(solution_);
+	}
+
+	GRASP &setTimeLimit(uint timeLimit) override {
+		timeLimit_ = timeLimit;
+		return *this;
+	}
+
+	GRASP &setTarget(double target) override {
+		target_ = target;
+		return *this;
+	}
+
+	GRASP &setMaxIterations(uint maxIterations) {
+		maxIterations_ = maxIterations;
+		return *this;
+	}
+
+	AlgorithmStatus getAlgorithmStatus() const override {
+		return algorithmStatus_;
+	}
+
+
 private:
 	std::unique_ptr<Constructor> constructor_ { nullptr };
 	std::unique_ptr<LocalSearch> localSearch_ { nullptr };
-	std::unique_ptr<StopCriterion> stopCriterion_ { nullptr };
 	std::unique_ptr<PathRelinking> pathRelink_ { nullptr };
 
 	std::unique_ptr<Comparator> comparator_ { nullptr };
@@ -210,6 +228,13 @@ private:
 
 	std::vector<std::mt19937_64> mt_;
 	unsigned int threads_;
+
+	std::unique_ptr<Solution> solution_ { nullptr };
+
+	uint timeLimit_ { 0 };
+	double target_ { std::numeric_limits<double>::infinity() };
+	AlgorithmStatus algorithmStatus_ { AlgorithmStatus::kUnknown };
+	uint maxIterations_ { 0 };
 
 	class UndefiniedOperator: public std::exception {
 	public:
