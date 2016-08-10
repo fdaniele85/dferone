@@ -28,6 +28,7 @@ public:
 	virtual Solver &setTimeLimit(uint timeLimit) = 0;
 	virtual Solver &setTarget(double target) = 0;
 	virtual AlgorithmStatus getAlgorithmStatus() const = 0;
+	virtual double getTime() const = 0;
 
 protected:
 	const Instance &m_instance;

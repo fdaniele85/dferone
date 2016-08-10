@@ -50,6 +50,7 @@ public:
 		}
 
 
+		timer_.stop();
 	}
 
 	virtual ~GRASP() {
@@ -59,6 +60,7 @@ public:
 		if (!constructor_) {
 			throw new UndefiniedOperator("Constructor");
 		}
+		timer_.resume();
 
 		auto comparator = [&comp = comparator_](const std::unique_ptr<Solution> &lhs, const std::unique_ptr<Solution> &rhs) {
 			return (*comp)(*lhs, *rhs);
@@ -68,8 +70,6 @@ public:
 				bestPoolSize_, comparator);
 
 		unsigned int currentIteration = 0;
-
-		boost::timer::cpu_timer timer;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -119,7 +119,7 @@ public:
 			{
 #endif
 
-				if (timeLimit_ > 0 && ((double) timer.elapsed().wall / 1000000000LL) > timeLimit_) {
+				if (timeLimit_ > 0 && ((double) timer_.elapsed().wall / 1000000000LL) > timeLimit_) {
 					LOG_IF(currentThread == 0, DEBUG) << "Esco perché time limit";
 					stop = true;
 				}
@@ -140,6 +140,7 @@ public:
 #endif
 
 		solution_ = bestPool.pop();
+		timer_.stop();
 		return SolutionStatus::kFeasible ;
 	}
 
@@ -215,6 +216,10 @@ public:
 		return algorithmStatus_;
 	}
 
+	double getTime() const override {
+		return static_cast<double>(timer_.elapsed().wall) / 1000000000LL;
+	}
+
 
 private:
 	std::unique_ptr<Constructor> constructor_ { nullptr };
@@ -235,6 +240,8 @@ private:
 	double target_ { std::numeric_limits<double>::infinity() };
 	AlgorithmStatus algorithmStatus_ { AlgorithmStatus::kUnknown };
 	uint maxIterations_ { 0 };
+
+	boost::timer::cpu_timer timer_;
 
 	class UndefiniedOperator: public std::exception {
 	public:
