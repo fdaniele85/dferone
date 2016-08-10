@@ -109,6 +109,9 @@ public:
 #pragma omp critical
 			{
 #endif
+				if (bestPool.size() == 0 || currentSolution->getCost() < bestPool[0]->getCost()) {
+					incumbents_.emplace_back(currentIteration, static_cast<double>(timer_.elapsed().wall) / 1000000000LL, static_cast<double>(currentSolution->getCost()));
+				}
 			bestPool.add(std::move(currentSolution));
 #ifdef _OPENMP
 		}
@@ -220,6 +223,10 @@ public:
 		return static_cast<double>(timer_.elapsed().wall) / 1000000000LL;
 	}
 
+	const std::vector<std::tuple<uint, double, double>> &getIncumbents() const {
+		return incumbents_;
+	}
+
 
 private:
 	std::unique_ptr<Constructor> constructor_ { nullptr };
@@ -240,6 +247,7 @@ private:
 	double target_ { std::numeric_limits<double>::infinity() };
 	AlgorithmStatus algorithmStatus_ { AlgorithmStatus::kUnknown };
 	uint maxIterations_ { 0 };
+	std::vector<std::tuple<uint, double, double>> incumbents_ {};
 
 	boost::timer::cpu_timer timer_;
 
