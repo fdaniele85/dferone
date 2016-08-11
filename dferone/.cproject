@@ -37,7 +37,7 @@
 									<listOptionValue builtIn="false" value="DEBUG"/>
 									<listOptionValue builtIn="false" value="__cplusplus=201402L"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.include.paths.1100037756" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.1100037756" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/daniele/Dropbox/linux_files/include/general"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2110690376" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -95,6 +95,9 @@
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1443019802" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
 									<listOptionValue builtIn="false" value="__cplusplus=201402L"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.include.paths.1891862581" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/daniele/Dropbox/linux_files/include/general"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1969373908" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
