@@ -47,6 +47,10 @@ public:
 
 		for (auto i : seeds) {
 			mt_.emplace_back(i);
+			constructionTimers_.emplace_back();
+			constructionTimers_.back().stop();
+			localSearchTimers_.emplace_back();
+			localSearchTimers_.back().stop();
 		}
 
 
@@ -77,6 +81,8 @@ public:
 #endif
 		bool stop = false;
 
+		std::pair<double, double> curItSolutions { std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity() };
+
 		std::uniform_real_distribution<> alphaDistribution(0, 1);
 
 		int currentThread = 0;
@@ -98,17 +104,25 @@ public:
 			VLOG(1) << "Iterazione corrente: " << threadIterationt;
 
 			double alpha = alphaDistribution(mt_[threads_]);
+			constructionTimers_[currentThread].resume();
 			std::unique_ptr<Solution> currentSolution = (*constructor_)(
 					this->m_instance, mt_[currentThread], alpha);
+			constructionTimers_[currentThread].stop();
+
+			curItSolutions.first = currentSolution->getCost();
 
 			if (localSearch_) {
+				localSearchTimers_[currentThread].resume();
 				(*localSearch_)(*currentSolution);
+				localSearchTimers_[currentThread].stop();
+				curItSolutions.second = currentSolution->getCost();
 			}
 
 #ifdef _OPENMP
 #pragma omp critical
 			{
 #endif
+				iterations_.push_back(std::move(curItSolutions));
 				if (bestPool.size() == 0 || currentSolution->getCost() < bestPool[0]->getCost()) {
 					incumbents_.emplace_back(currentIteration, static_cast<double>(timer_.elapsed().wall) / 1000000000LL, static_cast<double>(currentSolution->getCost()));
 				}
@@ -223,8 +237,38 @@ public:
 		return static_cast<double>(timer_.elapsed().wall) / 1000000000LL;
 	}
 
+	double getTimeConstruction() const {
+		boost::timer::nanosecond_type t = 0;
+		for (const auto &tim : constructionTimers_) {
+			t += tim.elapsed().wall;
+		}
+
+#ifdef _OPENMP
+		return (static_cast<double>(t) / omp_get_max_threads()) / 1000000000LL;
+#else
+		return static_cast<double>(t) / 1000000000LL;
+#endif
+	}
+
+	double getTimeLocalSearch() const {
+		boost::timer::nanosecond_type t = 0;
+		for (const auto &tim : localSearchTimers_) {
+			t += tim.elapsed().wall;
+		}
+
+#ifdef _OPENMP
+		return (static_cast<double>(t) / omp_get_max_threads()) / 1000000000LL;
+#else
+		return static_cast<double>(t) / 1000000000LL;
+#endif
+	}
+
 	const std::vector<std::tuple<uint, double, double>> &getIncumbents() const {
 		return incumbents_;
+	}
+
+	const std::vector<std::pair<double, double>> &getIterations() const {
+		return iterations_;
 	}
 
 
@@ -248,8 +292,11 @@ private:
 	AlgorithmStatus algorithmStatus_ { AlgorithmStatus::kUnknown };
 	uint maxIterations_ { 0 };
 	std::vector<std::tuple<uint, double, double>> incumbents_ {};
+	std::vector<std::pair<double, double>> iterations_ {};
 
 	boost::timer::cpu_timer timer_;
+	std::vector<boost::timer::cpu_timer> constructionTimers_;
+	std::vector<boost::timer::cpu_timer> localSearchTimers_;
 
 	class UndefiniedOperator: public std::exception {
 	public:
