@@ -25,10 +25,12 @@ namespace containers {
 /// Però l'insieme doveva permettermi di verificare velocemente se
 /// un elemento facesse o meno parte dell'insieme e mi permettesse di
 /// iterare con facilità sia sugli elementi contenuti che sul complemento.
+
+template <class T>
 class FiniteSet {
 public:
 	/// Il tipo degli oggetti contenuti
-	using value_type 	  = unsigned int;
+	using value_type 	  = T;
 
 	/// Il tipo per gli indici
 	using size_type 	  = std::size_t;
@@ -43,7 +45,7 @@ public:
 	using const_reference = const value_type &;
 
 	/// Tipo iteratore costante
-	using const_iterator  = std::vector<value_type>::const_iterator;
+	using const_iterator  = typename std::vector<value_type>::const_iterator;
 
 	class ComplementSet;
 
@@ -108,7 +110,8 @@ public:
 	/// @param os Output stream su cui stampare
 	/// @param fs Insieme da stmapare
 	/// @return Output stream os
-	inline friend std::ostream &operator<<(std::ostream &os, const FiniteSet &fs);
+	template<class R>
+	inline friend std::ostream &operator<<(std::ostream &os, const FiniteSet<R> &fs);
 
 	/// @name Iterazione
 	/// @{
@@ -154,7 +157,8 @@ private:
 };
 
 /// @brief Permette di iterare sull'insieme complemento
-class FiniteSet::ComplementSet {
+template <class T>
+class FiniteSet<T>::ComplementSet {
 public:
 	/// @name Iterazione
 	/// @{
@@ -183,7 +187,8 @@ public:
 	/// @param os Output stream su cui stampare
 	/// @param cs Insieme complemento da stmapare
 	/// @return Output stream os
-	inline friend std::ostream &operator<<(std::ostream &os, const ComplementSet &cs);
+	template <class R>
+	inline friend std::ostream &operator<<(std::ostream &os, const typename FiniteSet<R>::ComplementSet &cs);
 
 private:
 	/// Un ComplementSet può essere creato solo dal FiniteSet associato
@@ -206,7 +211,8 @@ namespace std {
 ///
 /// @param fs Insieme da stampare
 /// @return La stringa che lo rappresenta
-inline std::string to_string(const dferone::containers::FiniteSet &fs) {
+template <class T>
+inline std::string to_string(const dferone::containers::FiniteSet<T> &fs) {
 	string s("{ ");
 	auto it = cbegin(fs), end = cend(fs);
 
@@ -225,7 +231,8 @@ inline std::string to_string(const dferone::containers::FiniteSet &fs) {
 ///
 /// @param cs Insieme complemento da stampare
 /// @return La stringa che lo rappresenta
-inline std::string to_string(const dferone::containers::FiniteSet::ComplementSet &cs) {
+template <class T>
+inline std::string to_string(const typename dferone::containers::FiniteSet<T>::ComplementSet &cs) {
 	string s("{ ");
 	auto it = cbegin(cs), end = cend(cs);
 
@@ -246,7 +253,8 @@ namespace dferone {
 namespace containers {
 
 
-FiniteSet::FiniteSet(size_type capacity, size_type size) :
+template <class T>
+FiniteSet<T>::FiniteSet(size_type capacity, size_type size) :
 		elements_(capacity), positions_(capacity), capacity_(capacity), size_(size), m_cs(new ComplementSet(this)) {
 	if (size >= capacity)
 		size_ = capacity;
@@ -257,51 +265,60 @@ FiniteSet::FiniteSet(size_type capacity, size_type size) :
 	}
 }
 
-FiniteSet::FiniteSet(size_type capacity, std::initializer_list<value_type> list) :
+template <class T>
+FiniteSet<T>::FiniteSet(size_type capacity, std::initializer_list<value_type> list) :
 		FiniteSet(capacity) {
 	for (auto el : list) {
 		this->add(el);
 	}
 }
 
-FiniteSet::FiniteSet(const FiniteSet &other) : elements_(other.elements_), positions_(other.positions_), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
+template <class T>
+FiniteSet<T>::FiniteSet(const FiniteSet &other) : elements_(other.elements_), positions_(other.positions_), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
 }
 
-FiniteSet::FiniteSet(FiniteSet &&other) : elements_(std::move(other.elements_)), positions_(std::move(other.positions_)), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
+template <class T>
+FiniteSet<T>::FiniteSet(FiniteSet &&other) : elements_(std::move(other.elements_)), positions_(std::move(other.positions_)), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
 }
 
 
-FiniteSet::size_type FiniteSet::size() const noexcept {
+template <class T>
+typename FiniteSet<T>::size_type FiniteSet<T>::size() const noexcept {
 	return size_;
 }
 
-bool FiniteSet::empty() const noexcept {
+template <class T>
+bool FiniteSet<T>::empty() const noexcept {
 	return size_ == 0;
 }
 
-FiniteSet::size_type FiniteSet::capacity() const noexcept {
+template <class T>
+typename FiniteSet<T>::size_type FiniteSet<T>::capacity() const noexcept {
 	return capacity_;
 }
 
-void FiniteSet::add(value_type el) noexcept {
-	if (el < capacity_) {
+template <class T>
+void FiniteSet<T>::add(value_type el) noexcept {
+	if (((size_type) el) < capacity_) {
 		if (!contains(el)) {
-			swappos(positions_[el], size_);
+			swappos(positions_[(size_type) el], size_);
 			++size_;
 		}
 	}
 }
 
-void FiniteSet::remove(value_type el) noexcept {
-	if (el < capacity_) {
+template <class T>
+void FiniteSet<T>::remove(value_type el) noexcept {
+	if (((size_type) el) < capacity_) {
 		if (contains(el)) {
 			--size_;
-			swappos(positions_[el], size_);
+			swappos(positions_[(size_type) el], size_);
 		}
 	}
 }
 
-FiniteSet::const_iterator FiniteSet::remove(FiniteSet::const_iterator it) noexcept {
+template <class T>
+typename FiniteSet<T>::const_iterator FiniteSet<T>::remove(typename FiniteSet<T>::const_iterator it) noexcept {
 	// L'iteratore dell'array non viene inficiato,
 	// dato che c'è solo uno scambio di elementi: questo elemento passa
 	// all'indice size_ e l'elementi in quella posizione ora si troverà
@@ -311,11 +328,13 @@ FiniteSet::const_iterator FiniteSet::remove(FiniteSet::const_iterator it) noexce
 	return it;
 }
 
-bool FiniteSet::contains(value_type el) const noexcept {
-	return positions_[el] < size_;
+template <class T>
+bool FiniteSet<T>::contains(value_type el) const noexcept {
+	return positions_[(size_type) el] < size_;
 }
 
-void FiniteSet::swappos(size_type i, size_type j) noexcept {
+template <class T>
+void FiniteSet<T>::swappos(size_type i, size_type j) noexcept {
 	size_type prev_i = elements_[i];
 	size_type prev_j = elements_[j];
 
@@ -326,37 +345,46 @@ void FiniteSet::swappos(size_type i, size_type j) noexcept {
 	positions_[prev_i] = j;
 }
 
-std::ostream &operator<<(std::ostream &os, const FiniteSet &fs) {
+template <class T>
+std::ostream &operator<<(std::ostream &os, const FiniteSet<T> &fs) {
 	return os << std::to_string(fs);
 }
 
-void FiniteSet::reset() noexcept {
+template <class T>
+void FiniteSet<T>::reset() noexcept {
 	size_ = 0;
 }
 
-FiniteSet::const_iterator FiniteSet::cbegin() const noexcept {
+template <class T>
+typename FiniteSet<T>::const_iterator FiniteSet<T>::cbegin() const noexcept {
 	return elements_.cbegin();
 }
 
-FiniteSet::const_iterator FiniteSet::cend() const noexcept {
+template <class T>
+typename FiniteSet<T>::const_iterator FiniteSet<T>::cend() const noexcept {
 	return elements_.cbegin() + size_;
 }
 
-FiniteSet::~FiniteSet() = default;
+template <class T>
+FiniteSet<T>::~FiniteSet() = default;
 
-std::ostream &operator<<(std::ostream &os, const FiniteSet::ComplementSet &cs) {
+template <class T>
+std::ostream &operator<<(std::ostream &os, const typename FiniteSet<T>::ComplementSet &cs) {
 	return os << std::to_string(cs);
 }
 
-FiniteSet::value_type FiniteSet::operator[](FiniteSet::size_type pos) const noexcept {
+template <class T>
+typename FiniteSet<T>::value_type FiniteSet<T>::operator[](FiniteSet::size_type pos) const noexcept {
 	return elements_[pos];
 }
 
-FiniteSet::value_type FiniteSet::at(FiniteSet::size_type pos) const {
+template <class T>
+typename FiniteSet<T>::value_type FiniteSet<T>::at(typename FiniteSet<T>::size_type pos) const {
 	return elements_.at(pos);
 }
 
-FiniteSet &FiniteSet::operator=(const FiniteSet &other) {
+template <class T>
+FiniteSet<T> &FiniteSet<T>::operator=(const FiniteSet<T> &other) {
 	size_ = other.size_;
 	capacity_ = other.capacity_;
 	positions_ = other.positions_;
@@ -364,7 +392,8 @@ FiniteSet &FiniteSet::operator=(const FiniteSet &other) {
 	return *this;
 }
 
-FiniteSet &FiniteSet::operator=(FiniteSet &&other) {
+template <class T>
+FiniteSet<T> &FiniteSet<T>::operator=(FiniteSet<T> &&other) {
 	size_ = other.size_;
 	capacity_ = other.capacity_;
 	positions_ = std::move(other.positions_);
