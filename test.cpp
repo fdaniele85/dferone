@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "containers/BestSet.h"
+#include "containers/FiniteSet.h"
 
 namespace {
     using namespace dferone::containers;
 
-// Demonstrate some basic assertions.
-    TEST(HelloTest, best_set) {
+    TEST(Containers, best_set) {
         BestSet<int> bs(5);
         ASSERT_EQ(bs.size(), 0);
         bs.add(10);
@@ -23,6 +23,27 @@ namespace {
         bs.pop();
         ASSERT_EQ(bs.size(), 4);
         ASSERT_EQ(bs.top(), 10);
+    }
+
+    TEST(Containers, finite_set) {
+        FiniteSet<uint> fs(5);
+        ASSERT_EQ(fs.size(), 0);
+        fs.add(10);
+        ASSERT_EQ(fs.size(), 0);
+        fs.add(4);
+        ASSERT_TRUE(fs.contains(4));
+        ASSERT_EQ(fs.count(4), 1);
+        ASSERT_FALSE(fs.contains(1));
+        ASSERT_EQ(fs.count(1), 0);
+        ASSERT_EQ(fs.size(), 1);
+        fs.add(1);
+        fs.add(2);
+        fs.add(3);
+        fs.add(1);
+        ASSERT_EQ(fs.size(), 4);
+        fs.remove(4);
+        ASSERT_FALSE(fs.contains(4));
+        ASSERT_EQ(fs.size(), 3);
     }
 
 }

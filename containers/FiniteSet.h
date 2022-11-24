@@ -96,6 +96,10 @@ public:
 	/// @return true se l'insieme contriene el, false altrimenti
 	inline bool contains(value_type el) const noexcept;
 
+    /// \param el L'elemento di cui contare le occorrenze
+    /// \return 1 se l'elemente appartiene all'insieme, 0 altrimenti
+    inline size_type count(value_type el) const noexcept;
+
 	/// @name Accesso diretto
 	/// @{
 
@@ -199,7 +203,6 @@ private:
 };
 
 }
-}
 
 /// @namespace std
 /// @brief Fa l'overload di alcune funzioni presenti in std
@@ -247,8 +250,7 @@ inline std::string to_string(const typename dferone::containers::FiniteSet<T>::C
 
 }
 
-namespace dferone {
-namespace containers {
+namespace dferone::containers {
 
 
 template <class T>
@@ -397,6 +399,14 @@ FiniteSet<T> &FiniteSet<T>::operator=(FiniteSet<T> &&other) {
 	positions_ = std::move(other.positions_);
 	elements_ = std::move(other.elements_);
 	return *this;
+}
+
+template <class T>
+typename FiniteSet<T>::size_type FiniteSet<T>::count(FiniteSet<T>::value_type el) const noexcept {
+    if (this->contains(el)) {
+        return 1;
+    }
+    return 0;
 }
 
 } /* namespace dferone */
