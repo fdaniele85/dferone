@@ -5,8 +5,7 @@
  *      Author: daniele
  */
 
-#ifndef FINITESET_H_
-#define FINITESET_H_
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -14,8 +13,7 @@
 #include <algorithm>
 #include <iterator>
 
-namespace dferone {
-namespace containers {
+namespace dferone::containers {
 
 /// @brief La classe serve a contenere un insieme che può contenere
 /// solo interi tra 0 e n (escluso)
@@ -401,10 +399,4 @@ FiniteSet<T> &FiniteSet<T>::operator=(FiniteSet<T> &&other) {
 	return *this;
 }
 
-} /* namespace finiteset */
 } /* namespace dferone */
-
-
-
-
-#endif /* FINITESET_H_ */
