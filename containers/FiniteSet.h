@@ -24,7 +24,7 @@ namespace dferone::containers {
 /// un elemento facesse o meno parte dell'insieme e mi permettesse di
 /// iterare con facilità sia sugli elementi contenuti che sul complemento.
 
-template <class T>
+template <class T> requires std::integral<T>
 class FiniteSet {
 public:
 	/// Il tipo degli oggetti contenuti
@@ -34,13 +34,13 @@ public:
 	using size_type 	  = std::size_t;
 
 	/// Il tipo differenza tra iteratori
-	using difference_type = int;
+	using difference_type [[maybe_unused]] = int;
 
 	/// Tipo riferimento
-	using reference       = value_type &;
+	using reference [[maybe_unused]] = value_type &;
 
 	/// Tipo riferimento costante
-	using const_reference = const value_type &;
+	using const_reference [[maybe_unused]] = const value_type &;
 
 	/// Tipo iteratore costante
 	using const_iterator  = typename std::vector<value_type>::const_iterator;
@@ -55,23 +55,23 @@ public:
 	///
 	/// L'insieme può contenere i valori [0, capacity); i valori
 	/// [0, size) vengono effettivamente inseriti nell'insieme
-	inline FiniteSet(size_type capacity, size_type size = 0);
-	inline FiniteSet(size_type capacity, std::initializer_list<value_type> list);
+	explicit inline FiniteSet(size_type capacity, size_type size = 0);
+    [[maybe_unused]] inline FiniteSet(size_type capacity, std::initializer_list<value_type> list);
 	inline FiniteSet(const FiniteSet &other);
-	inline FiniteSet(FiniteSet &&other);
+	inline FiniteSet(FiniteSet &&other) noexcept;
 	/// @}
 	///
 	///
 	inline ~FiniteSet();
 
 	/// @return La cardinalità attuale dell'insieme
-	inline size_type size()     const noexcept;
+	[[nodiscard]] inline size_type size()     const noexcept;
 
 	/// @return true se l'insieme è vuoto, false altrimenti
-	inline bool empty()    const noexcept;
+	[[nodiscard]] inline bool empty()    const noexcept;
 
 	/// @return La cardinalità massima dell'insieme
-	inline size_type capacity() const noexcept;
+	[[nodiscard]] inline size_type capacity() const noexcept;
 
 	/// @param el L'elemento da inserire
 	///
@@ -135,7 +135,7 @@ public:
 
 	/// @param other Oggetto da copiare/spostare
 	inline FiniteSet &operator=(const FiniteSet &other);
-	inline FiniteSet &operator=(FiniteSet &&other);
+	inline FiniteSet &operator=(FiniteSet &&other) noexcept ;
 	/// @}
 
 private:
@@ -159,7 +159,7 @@ private:
 };
 
 /// @brief Permette di iterare sull'insieme complemento
-template <class T>
+template <class T> requires std::integral<T>
 class FiniteSet<T>::ComplementSet {
 public:
 	/// @name Iterazione
@@ -196,7 +196,7 @@ private:
 	/// Un ComplementSet può essere creato solo dal FiniteSet associato
 	///
 	/// @param fs @param fs L'insieme di cui si è complemento
-	ComplementSet(FiniteSet *fs) : fs_(fs) {}
+	explicit ComplementSet(FiniteSet *fs) : fs_(fs) {}
 
 	/// Puntatore all'insieme associato
 	FiniteSet *fs_;
@@ -253,7 +253,7 @@ inline std::string to_string(const typename dferone::containers::FiniteSet<T>::C
 namespace dferone::containers {
 
 
-template <class T>
+template <class T> requires std::integral<T>
 FiniteSet<T>::FiniteSet(size_type capacity, size_type size) :
 		elements_(capacity), positions_(capacity), capacity_(capacity), size_(size), m_cs(new ComplementSet(this)) {
 	if (size >= capacity)
@@ -265,39 +265,39 @@ FiniteSet<T>::FiniteSet(size_type capacity, size_type size) :
 	}
 }
 
-template <class T>
-FiniteSet<T>::FiniteSet(size_type capacity, std::initializer_list<value_type> list) :
+template <class T> requires std::integral<T>
+[[maybe_unused]] FiniteSet<T>::FiniteSet(size_type capacity, std::initializer_list<value_type> list) :
 		FiniteSet(capacity) {
 	for (auto el : list) {
 		this->add(el);
 	}
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 FiniteSet<T>::FiniteSet(const FiniteSet &other) : elements_(other.elements_), positions_(other.positions_), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
 }
 
-template <class T>
-FiniteSet<T>::FiniteSet(FiniteSet &&other) : elements_(std::move(other.elements_)), positions_(std::move(other.positions_)), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
+template <class T> requires std::integral<T>
+FiniteSet<T>::FiniteSet(FiniteSet &&other) noexcept : elements_(std::move(other.elements_)), positions_(std::move(other.positions_)), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
 }
 
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::size_type FiniteSet<T>::size() const noexcept {
 	return size_;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 bool FiniteSet<T>::empty() const noexcept {
 	return size_ == 0;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::size_type FiniteSet<T>::capacity() const noexcept {
 	return capacity_;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 void FiniteSet<T>::add(value_type el) noexcept {
 	if (((size_type) el) < capacity_) {
 		if (!contains(el)) {
@@ -307,7 +307,7 @@ void FiniteSet<T>::add(value_type el) noexcept {
 	}
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 void FiniteSet<T>::remove(value_type el) noexcept {
 	if (((size_type) el) < capacity_) {
 		if (contains(el)) {
@@ -317,7 +317,7 @@ void FiniteSet<T>::remove(value_type el) noexcept {
 	}
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::const_iterator FiniteSet<T>::remove(typename FiniteSet<T>::const_iterator it) noexcept {
 	// L'iteratore dell'array non viene inficiato,
 	// dato che c'è solo uno scambio di elementi: questo elemento passa
@@ -328,12 +328,12 @@ typename FiniteSet<T>::const_iterator FiniteSet<T>::remove(typename FiniteSet<T>
 	return it;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 bool FiniteSet<T>::contains(value_type el) const noexcept {
 	return positions_[(size_type) el] < size_;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 void FiniteSet<T>::swappos(size_type i, size_type j) noexcept {
 	size_type prev_i = elements_[i];
 	size_type prev_j = elements_[j];
@@ -345,45 +345,45 @@ void FiniteSet<T>::swappos(size_type i, size_type j) noexcept {
 	positions_[prev_i] = j;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 std::ostream &operator<<(std::ostream &os, const FiniteSet<T> &fs) {
 	return os << std::to_string(fs);
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 void FiniteSet<T>::reset() noexcept {
 	size_ = 0;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::const_iterator FiniteSet<T>::cbegin() const noexcept {
 	return elements_.cbegin();
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::const_iterator FiniteSet<T>::cend() const noexcept {
 	return elements_.cbegin() + size_;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 FiniteSet<T>::~FiniteSet() = default;
 
-template <class T>
+template <class T> requires std::integral<T>
 std::ostream &operator<<(std::ostream &os, const typename FiniteSet<T>::ComplementSet &cs) {
 	return os << std::to_string(cs);
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::value_type FiniteSet<T>::operator[](FiniteSet::size_type pos) const noexcept {
 	return elements_[pos];
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::value_type FiniteSet<T>::at(typename FiniteSet<T>::size_type pos) const {
 	return elements_.at(pos);
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 FiniteSet<T> &FiniteSet<T>::operator=(const FiniteSet<T> &other) {
 	size_ = other.size_;
 	capacity_ = other.capacity_;
@@ -392,8 +392,8 @@ FiniteSet<T> &FiniteSet<T>::operator=(const FiniteSet<T> &other) {
 	return *this;
 }
 
-template <class T>
-FiniteSet<T> &FiniteSet<T>::operator=(FiniteSet<T> &&other) {
+template <class T> requires std::integral<T>
+FiniteSet<T> &FiniteSet<T>::operator=(FiniteSet<T> &&other) noexcept {
 	size_ = other.size_;
 	capacity_ = other.capacity_;
 	positions_ = std::move(other.positions_);
@@ -401,7 +401,7 @@ FiniteSet<T> &FiniteSet<T>::operator=(FiniteSet<T> &&other) {
 	return *this;
 }
 
-template <class T>
+template <class T> requires std::integral<T>
 typename FiniteSet<T>::size_type FiniteSet<T>::count(FiniteSet<T>::value_type el) const noexcept {
     if (this->contains(el)) {
         return 1;
