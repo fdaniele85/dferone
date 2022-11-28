@@ -3,9 +3,13 @@
 #include "containers/BestSet.h"
 #include "containers/FiniteSet.h"
 #include "containers/containers.h"
+#include "streams.h"
+#include "random.h"
 
 namespace {
     using namespace dferone::containers;
+    using namespace dferone::streams;
+    using namespace dferone::random;
 
     TEST(Containers, best_set) {
         BestSet<int> bs(5);
@@ -50,5 +54,14 @@ namespace {
 
         ASSERT_TRUE(contains(fs, 1));
     }
+
+    TEST(streams, j_and_p) {
+        std::vector<int> v {1, 2, 3};
+        std::ostringstream ss;
+        join_and_print(ss, v);
+        ASSERT_EQ(ss.str(), "1, 2, 3");
+    }
+
+
 
 }
