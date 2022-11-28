@@ -5,11 +5,13 @@
 #include "containers/containers.h"
 #include "streams.h"
 #include "random.h"
+#include "console.h"
 
 namespace {
     using namespace dferone::containers;
     using namespace dferone::streams;
     using namespace dferone::random;
+    using namespace dferone::console;
 
     TEST(Containers, best_set) {
         BestSet<int> bs(5);
@@ -55,11 +57,44 @@ namespace {
         ASSERT_TRUE(contains(fs, 1));
     }
 
-    TEST(streams, j_and_p) {
+    TEST(Containers, j_and_p) {
         std::vector<int> v {1, 2, 3};
         std::ostringstream ss;
-        join_and_print(ss, v);
+        join_and_print(v, ss);
         ASSERT_EQ(ss.str(), "1, 2, 3");
+
+        std::map<int, int> m{ {1, 1}, {2, 2}, {3, 3} };
+        std::cout << to_string(m ) << '\n';
+    }
+
+    TEST(Containers, enumerate) {
+        std::vector<uint> v;
+        for (uint i = 100; i > 0; --i) {
+            v.push_back(i);
+        }
+
+        for (auto [i, el] : enumerate(v)) {
+            ASSERT_EQ(100 - i, el);
+        }
+    }
+
+    TEST(random, select_random) {
+        std::vector<int> v {0,1,2,3,4,5,6,7,8,9};
+        std::mt19937_64 rand(0);
+        for (uint i = 0; i < 100; ++i) {
+            auto q = selectRandom(v, rand);
+            ASSERT_TRUE(q != v.end());
+            ASSERT_GE(*q, 0);
+            ASSERT_LE(*q, 9);
+        }
+
+        for (uint i = 0; i < 100; ++i) {
+            auto q = v.begin();
+            q = selectRandom(q, v.size(), rand);
+            ASSERT_TRUE(q != v.end());
+            ASSERT_GE(*q, 0);
+            ASSERT_LE(*q, 9);
+        }
     }
 
 

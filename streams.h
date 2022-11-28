@@ -4,23 +4,20 @@
 
 #pragma once
 
-#include <ranges>
-#include <iostream>
+#include <fstream>
+
 
 namespace dferone::streams {
 
-    template<class Container>
-    requires std::ranges::range<Container>
-    inline std::ostream &join_and_print(std::ostream &out, const Container &c, const std::string &separator = ", ") {
-        bool first = true;
-        for (const auto &x: c) {
-            if (!first) {
-                out << separator;
-            }
-            out << x;
-            first = false;
+    /** @brief  Skips a certain number of lines from an input file stream.
+        *
+        *  @param stream    The file stream.
+        *  @param how_many  Number of lines to skip.
+        */
+    inline void skip_lines(std::ifstream& stream, std::size_t how_many = 1u) {
+        for(auto i = 0u; i < how_many; ++i) {
+            stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        return out;
-    }
+    };
 
 }
