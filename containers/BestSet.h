@@ -11,8 +11,7 @@
 #include <vector>
 #include <functional>
 
-namespace dferone {
-namespace containers {
+namespace dferone::containers {
 
 /// \brief Insieme di dimensione fissa che conserva solo i migliori elementi
 ///
@@ -207,7 +206,6 @@ private:
 	}
 };
 
-} /* namespace containers */
-} /* namespace fdaniele */
+}
 
 #endif /* BESTSET_H_ */

@@ -2,6 +2,7 @@
 
 #include "containers/BestSet.h"
 #include "containers/FiniteSet.h"
+#include "containers/containers.h"
 
 namespace {
     using namespace dferone::containers;
@@ -23,6 +24,8 @@ namespace {
         bs.pop();
         ASSERT_EQ(bs.size(), 4);
         ASSERT_EQ(bs.top(), 10);
+
+        ASSERT_TRUE(contains(bs, 1));
     }
 
     TEST(Containers, finite_set) {
@@ -44,6 +47,8 @@ namespace {
         fs.remove(4);
         ASSERT_FALSE(fs.contains(4));
         ASSERT_EQ(fs.size(), 3);
+
+        ASSERT_TRUE(contains(fs, 1));
     }
 
 }
