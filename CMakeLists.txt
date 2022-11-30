@@ -13,16 +13,24 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+find_package(OpenMP)
+
 enable_testing()
+
+add_compile_definitions(DFERONE_THREAD_SAFE)
 
 add_executable(
         hello_test
         test.cpp
+        Counter.cpp
 )
-target_link_libraries(
-        hello_test
-        GTest::gtest_main
-)
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(hello_test PUBLIC GTest::gtest_main OpenMP::OpenMP_CXX)
+else()
+    target_link_libraries(hello_test GTest::gtest_main)
+endif()
+
 
 include(GoogleTest)
 gtest_discover_tests(hello_test)

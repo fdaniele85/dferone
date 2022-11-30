@@ -3,8 +3,7 @@
 // The original code can be found at https://github.com/alberto-santini/as
 //
 
-#ifndef AS_CONSOLE_H
-#define AS_CONSOLE_H
+#pragma once
 
 #include <string>
 #include <ostream>
@@ -42,9 +41,15 @@ namespace dferone {
          *  @param c The colour.
          *  @return  The corresponding string with escape codes.
          */
+#ifndef AVOID_COLORS
         inline std::string escape(Colour c) {
             return "\033[" + std::to_string(colour_code(c)) + "m";
         }
+#else
+        inline std::string escape(Colour c) {
+            return "";
+        }
+#endif
 
         /** @brief  Prints a colour code.
          *
@@ -89,5 +94,3 @@ namespace dferone {
         static const std::string error = colourise(Colour::Red, "[!] ");
     }
 }
-
-#endif //AS_CONSOLE_H
