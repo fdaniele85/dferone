@@ -3,15 +3,16 @@
 #include "containers/BestSet.h"
 #include "containers/FiniteSet.h"
 #include "containers/containers.h"
-#include "streams.h"
+#include "Counter.h"
 #include "random.h"
 #include "console.h"
+#include "omp.h"
 
 namespace {
     using namespace dferone::containers;
-    using namespace dferone::streams;
     using namespace dferone::random;
     using namespace dferone::console;
+    using namespace dferone::counters;
 
     TEST(Containers, best_set) {
         BestSet<int> bs(5);
@@ -62,9 +63,6 @@ namespace {
         std::ostringstream ss;
         join_and_print(v, ss);
         ASSERT_EQ(ss.str(), "1, 2, 3");
-
-        std::map<int, int> m{ {1, 1}, {2, 2}, {3, 3} };
-        std::cout << to_string(m ) << '\n';
     }
 
     TEST(Containers, enumerate) {
@@ -97,6 +95,42 @@ namespace {
         }
     }
 
+    TEST(counter, c) {
+        Counter c;
+        ASSERT_DOUBLE_EQ(c, 0.0);
+        ++c;
+        ASSERT_DOUBLE_EQ(c, 1.0);
+        c -= 3;
+        ASSERT_DOUBLE_EQ(c, -2.0);
+
+        Counter prova("prova");
+        ASSERT_DOUBLE_EQ(prova, 0.0);
+        prova = 3.0;
+        ASSERT_DOUBLE_EQ(prova, 3.0);
+    }
+
+    TEST(counter, dopo) {
+        Counter c("prova");
+        ASSERT_DOUBLE_EQ(c, 3.0);
+        ASSERT_DOUBLE_EQ(c++, 3.0);
+        ASSERT_DOUBLE_EQ(c, 4.0);
+        ASSERT_DOUBLE_EQ(++c, 5.0);
+    }
+
+
+#ifdef DFERONE_THREAD_SAFE
+    TEST(counter, multithread) {
+        Counter c("prova");
+        c = 0;
+        uint n_threads = 500;
+#pragma omp parallel num_threads(n_threads) default(none) shared(c)
+        {
+            ++c;
+        }
+
+        ASSERT_DOUBLE_EQ(c, n_threads);
+    }
+#endif
 
 
 }
