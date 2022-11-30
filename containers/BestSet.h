@@ -10,52 +10,42 @@
 
 #include <vector>
 #include <functional>
+#include <concepts>
+#include "containers.h"
 
 namespace dferone::containers {
 
-/// \brief Insieme di dimensione fissa che conserva solo i migliori elementi
+/// \brief Fixed sized set of the best elements
 ///
-/// \tparam T Tipo di elementi da conservare
-/// \tparam comparator Comparatore di elementi, deve implementare "bool operator(const T& lhs, const T& rhs)",
-/// che restituisce vero se lhs è da conservare rispetto a rhs
+/// \tparam T Type of the elements to store
+/// \tparam comparator Elements comparator, it must implement "bool operator(const T& lhs, const T& rhs)",
+/// that returns true if lhs is better than rhs
 ///
 template <typename T, typename comparator = std::greater<T>>
 class BestSet {
 public:
-	/// Il tipo degli elementi conservati
 	using value_type = T;
-
-	/// Il size type per gli indici
 	using size_type = typename std::vector<T>::size_type;
-
-	/// Tipo riferimento al tipo degli elementi conservati
 	using reference = typename std::vector<T>::reference;
-
-	/// Tipo riferimento costante al tipo degli elementi conservati
 	using const_reference = typename std::vector<T>::const_reference;
-
-	/// Tipo puntatore al tipo degli elementi conservati
 	using pointer = typename std::vector<T>::pointer;
-
-	/// Tipo puntatore costante al tipo degli elementi conservati
 	using const_pointer = typename std::vector<T>::const_pointer;
-
-	/// Iteratore costante dell'insieme
 	using const_iterator = typename std::vector<T>::const_iterator;
 
-	/// @name Costruttori
+	/// @name (constructors)
 	/// @{
 
-	/// @param capacity La capacità dell'insieme
+	/// @param capacity The capacity of the set
 	inline BestSet(size_type capacity, comparator c = comparator()) : capacity_(capacity) , elements_(capacity), c_(c) {};
 
-	/// @brief Costruttore di copia
+	/// @brief Copy constructor
 	BestSet(const BestSet &other) = default;
 
-	/// @brief Costruttore di spostamento
+	/// @brief Movable constructor
 	BestSet(BestSet &&other) = default;
 	/// @}
 
+    /// \return The current size of the set
 	inline size_type size() const {
 		return size_;
 	}
@@ -176,6 +166,12 @@ public:
 		return cend();
 	}
 	/// @}
+
+    friend std::ostream &operator<<(std::ostream &out, const BestSet<T, comparator> bs) {
+        out << '[';
+        join_and_print(bs, out);
+        return out << ']';
+    }
 
 
 private:

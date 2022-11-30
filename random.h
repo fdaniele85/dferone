@@ -7,6 +7,7 @@
 #include <random>
 #include <concepts>
 
+/// Random namespace
 namespace dferone::random {
 
     /** @brief  Gets a properly seeded Mersenne Twister prng.

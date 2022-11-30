@@ -33,6 +33,7 @@ namespace {
         ASSERT_EQ(bs.top(), 10);
 
         ASSERT_TRUE(contains(bs, 1));
+        std::cout << bs << std::endl;
     }
 
     TEST(Containers, finite_set) {

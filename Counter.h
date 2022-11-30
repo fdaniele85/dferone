@@ -17,31 +17,32 @@
 
 namespace dferone::counters {
 
-class Counter {
-public:
-    explicit Counter(std::string name = "");
+    /// \brief Global counter that can be used in different places in the code
+    class Counter {
+    public:
+        explicit Counter(std::string name = "");
 
-    virtual ~Counter() = default;
+        virtual ~Counter() = default;
 
-    Counter &operator =(double val);
+        Counter &operator=(double val);
 
-    operator double() const;
+        operator double() const;
 
-    double operator++(int);
-    double operator++();
-    double operator+=(double val);
-    double operator-=(double val);
+        double operator++(int);
 
-private:
-	static Counter *singleton;
-	std::map<std::string, double> counters_;
-    static std::map<std::string, double> static_counters_;
+        double operator++();
+
+        double operator+=(double val);
+
+        double operator-=(double val);
+
+    private:
+        static Counter *singleton;
+        std::map<std::string, double> counters_;
+        static std::map<std::string, double> static_counters_;
 #ifdef DFERONE_THREAD_SAFE
-    static std::mutex mutex;
+        static std::mutex mutex;
 #endif
-    std::string name_;
-};
-
-
-
+        std::string name_;
+    };
 } /* namespace dferone */
