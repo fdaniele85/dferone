@@ -8,6 +8,9 @@
 #include "console.h"
 #include "omp.h"
 
+#include <lemon/full_graph.h>
+#include "ranges.h"
+
 namespace {
     using namespace dferone::containers;
     using namespace dferone::random;
@@ -130,6 +133,28 @@ namespace {
         }
 
         ASSERT_DOUBLE_EQ(c, n_threads);
+    }
+
+    TEST(prova, prova) {
+        lemon::FullGraph g(10);
+
+        for (auto node : dferone::ranges::make_lemon_range<lemon::FullGraph::NodeIt>(g)) {
+            std::cout << g.id(node) << '\n';
+        }
+
+//        for (lemon::FullGraph::OutArcIt edge(g, g.nodeFromId(0)); edge != lemon::INVALID; ++edge) {
+//            std::cout << g.id(edge) << "\n";
+//        }
+
+        auto iterable =dferone::ranges::make_lemon_range<lemon::FullGraph::OutArcIt>(g, g.nodeFromId(0));
+        auto it = iterable.begin(), end = iterable.end();
+        while (it != iterable.end()) {
+            ++it;
+        }
+        //std::cout << g.id(*q) << " " << g.id(*it) << "\n";
+        for (auto edge : dferone::ranges::make_lemon_range<lemon::FullGraph::IncEdgeIt>(g, g.nodeFromId(0))) {
+            std::cout << g.id(edge) << "\n";
+        }
     }
 #endif
 
