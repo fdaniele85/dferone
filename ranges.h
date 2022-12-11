@@ -5,39 +5,41 @@
 #pragma once
 
 #include <lemon/core.h>
+#include <ranges>
 
 namespace dferone::ranges {
     namespace detail {
-        template <class lemon_iterator, class... Types>
+        template <class lemon_iterator>
         class iterable {
         public:
             class iterator {
             public:
+                using difference_type = int;
                 iterator(lemon_iterator it) : it_(it) {}
                 auto operator*() {return it_;}
                 bool operator==(const iterator &other) const {
                     return it_ == other.it_;
                 }
-                iterator operator++() {
+                iterator &operator++() {
                     ++it_;
                     return *this;
                 }
 
-                iterator operator++(int) {
+                iterator &operator++(int) {
                     auto old = *this;
                     ++it_;
                     return old;
                 }
-            private:
                 lemon_iterator it_;
             };
-            explicit iterable(Types... args) : begin_(std::forward<Types>(args)...), end_(lemon::INVALID) {}
+            explicit iterable(lemon_iterator it) : begin_(it), end_(lemon::INVALID){
+            }
             iterator begin() {
-                return iterator(begin_);
+                return iterator{begin_};
             }
 
             iterator end() {
-                return iterator(end_);
+                return iterator{end_};
             }
 
         private:
@@ -46,9 +48,37 @@ namespace dferone::ranges {
         };
     }
 
-    template <typename T, class... Types>
-    detail::iterable<T, Types...> make_lemon_range(Types... args) {
-        return detail::iterable<T, Types...>(std::forward<Types>(args)...);
+    template <typename lemon_iterator>
+    auto make_lemon_range(lemon_iterator it) {
+        return detail::iterable<lemon_iterator>(it);
+    }
+
+    template <typename Graph>
+    auto forward_star(const Graph &g, const typename Graph::Node &node) {
+        return make_lemon_range(typename Graph::OutArcIt(g, node));
+    }
+
+    template <typename Graph>
+    auto backward_star(const Graph &g, const typename Graph::Node &node) {
+        return make_lemon_range(typename Graph::InArcIt(g, node));
+    }
+
+    template <typename Graph>
+    requires requires {
+        typename Graph::EdgeIt;
+    }
+    auto edges(const Graph &g) {
+        return make_lemon_range(typename Graph::EdgeIt(g));
+    }
+
+    template <typename Graph>
+    auto arcs(const Graph &g) {
+        return make_lemon_range(typename Graph::ArcIt(g));
+    }
+
+    template <typename Graph>
+    auto nodes(const Graph &g) {
+        return make_lemon_range(typename Graph::NodeIt(g));
     }
 
 
