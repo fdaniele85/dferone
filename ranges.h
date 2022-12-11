@@ -9,42 +9,56 @@
 
 namespace dferone::ranges {
     namespace detail {
+        class sentinel {};
+        template <typename lemon_iterator>
+        class iterator {
+        public:
+            using difference_type = int;
+            using value_type = lemon_iterator;
+            iterator() : it_(lemon::INVALID) {}
+            iterator(lemon_iterator it) : it_(it) {}
+            iterator(iterator &&other) : it_(std::move(other.it_)) {}
+            lemon_iterator &operator*() const {return it_;}
+            lemon_iterator &operator*() {return it_;}
+            bool operator==(const iterator &other) const {
+                return it_ == other.it_;
+            }
+            bool operator==(const sentinel& s) const {
+                return it_ == lemon::INVALID;
+            }
+            iterator &operator=(const iterator &o) {
+                it_ = o.it_;
+                return *this;
+            }
+            iterator &operator++() {
+                ++it_;
+                return *this;
+            }
+
+            iterator &operator++(int) {
+                auto old = *this;
+                ++it_;
+                return old;
+            }
+            lemon_iterator it_;
+        };
+
         template <class lemon_iterator>
         class iterable {
         public:
-            class iterator {
-            public:
-                using difference_type = int;
-                iterator(lemon_iterator it) : it_(it) {}
-                auto operator*() {return it_;}
-                bool operator==(const iterator &other) const {
-                    return it_ == other.it_;
-                }
-                iterator &operator++() {
-                    ++it_;
-                    return *this;
-                }
-
-                iterator &operator++(int) {
-                    auto old = *this;
-                    ++it_;
-                    return old;
-                }
-                lemon_iterator it_;
-            };
-            explicit iterable(lemon_iterator it) : begin_(it), end_(lemon::INVALID){
+            explicit iterable(lemon_iterator it) : begin_(it) {
             }
-            iterator begin() {
+            iterator<lemon_iterator> begin() {
                 return iterator{begin_};
             }
 
-            iterator end() {
-                return iterator{end_};
+            sentinel end() {
+                return {};
             }
+
 
         private:
             lemon_iterator begin_;
-            lemon::Invalid end_;
         };
     }
 

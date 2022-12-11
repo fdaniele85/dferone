@@ -150,7 +150,8 @@ namespace {
     TEST(prova, prova) {
         lemon::FullDigraph g(5);
 
-        for (auto edge : dferone::ranges::backward_star(g, g.nodeFromId(0))) {
+        auto bs = dferone::ranges::backward_star(g, g.nodeFromId(0));
+        for (auto edge : bs | std::views::take(3)) {
             std::cout << "edge: " << g.id(g.source(edge)) << " -> " << g.id(g.target(edge)) << "\n";
         }
     }
