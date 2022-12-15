@@ -15,7 +15,7 @@ namespace dferone::random {
     *  @return A seeded instance of std::mt19937.
     */
     inline std::mt19937_64 get_seeded_mt() {
-        std::array<std::mt19937_64 ::result_type,std::mt19937_64 ::state_size> random_data;
+        std::array<std::mt19937_64::result_type, std::mt19937_64::state_size> random_data;
         std::random_device random_source;
 
         std::generate(random_data.begin(), random_data.end(), std::ref(random_source));
@@ -39,11 +39,11 @@ namespace dferone::random {
     */
     template<std::floating_point FloatingPoint, class Prng = std::mt19937_64>
     inline typename std::vector<FloatingPoint>::size_type roulette_wheel(
-            const std::vector<FloatingPoint>& weights,
-            Prng&& prng
+            const std::vector<FloatingPoint> &weights,
+            Prng &&prng
     ) {
         // Roulette wheel selection only works if all weights are non-negative.
-        assert(std::all_of(weights.begin(), weights.end(), [](auto w){return w >= 0;}));
+        assert(std::all_of(weights.begin(), weights.end(), [](auto w) { return w >= 0; }));
 
         // There needs to be at least one element in the vector.
         assert(!weights.empty());
@@ -54,10 +54,10 @@ namespace dferone::random {
 
         FloatingPoint partial = 0;
 
-        for(typename std::vector<FloatingPoint>::size_type i = 0u; i < weights.size() - 1u; ++i) {
+        for (typename std::vector<FloatingPoint>::size_type i = 0u; i < weights.size() - 1u; ++i) {
             partial += weights[i];
 
-            if(partial >= pivot) {
+            if (partial >= pivot) {
                 return i;
             }
         }
@@ -66,8 +66,17 @@ namespace dferone::random {
     }
 
 
+    /// Randomly select an element from a container with uniform distribution
+    /// \tparam Container Container type
+    /// \tparam Random Random number generator
+    /// \param c The container
+    /// \param rand The number generator
+    /// \return an element of the container
     template<std::ranges::range Container, class Random = std::mt19937_64>
-    typename Container::const_iterator selectRandom(const Container &c, Random &rand) {
+    typename Container::const_iterator selectRandom(const Container &c, Random &rand)
+    requires requires {
+        { c.size() } -> std::same_as<typename Container::size_type>;
+    } {
         assert(!c.empty());
 
         auto size = c.size();
@@ -79,6 +88,13 @@ namespace dferone::random {
         return q;
     }
 
+    /// Select a random element given an iterator and the number of elements with uniform distribution
+    /// \tparam Iterator Iterator type (at least std::forward_iterator)
+    /// \tparam Random Random number generator type
+    /// \param q The initial iterator
+    /// \param size The number of valid iterators
+    /// \param rand The random number generator
+    /// \return An iterator to the selected element
     template<std::forward_iterator Iterator, class Random = std::mt19937_64>
     Iterator selectRandom(Iterator q, std::size_t size, Random &rand) {
         assert(size > 0u);
