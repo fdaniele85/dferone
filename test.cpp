@@ -56,6 +56,9 @@ namespace {
         ASSERT_EQ(fs.size(), 3);
 
         ASSERT_TRUE(contains(fs, 1));
+        join_and_print(fs, std::cout);
+        std::cout << '\n';
+        join_and_print(fs.complement(), std::cout);
     }
 
     TEST(Containers, j_and_p) {
@@ -109,18 +112,16 @@ namespace {
         ASSERT_DOUBLE_EQ(prova, 0.0);
         prova = 3.0;
         ASSERT_DOUBLE_EQ(prova, 3.0);
-    }
 
-    TEST(counter, dopo) {
-        Counter c("prova");
-        ASSERT_DOUBLE_EQ(c, 3.0);
-        ASSERT_DOUBLE_EQ(c++, 3.0);
-        ASSERT_DOUBLE_EQ(c, 4.0);
-        ASSERT_DOUBLE_EQ(++c, 5.0);
+        Counter c2("prova");
+        ASSERT_DOUBLE_EQ(c2, 3.0);
+        ASSERT_DOUBLE_EQ(c2++, 3.0);
+        ASSERT_DOUBLE_EQ(c2, 4.0);
+        ASSERT_DOUBLE_EQ(++c2, 5.0);
 
         Counter secondo("secondo");
         secondo = 5.0;
-        ASSERT_EQ(c, secondo);
+        ASSERT_EQ(c2, secondo);
     }
 
 

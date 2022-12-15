@@ -106,7 +106,7 @@ namespace dferone::containers {
     *
     *  @tparam Container   The container type.
     *  @param  iterable    An instance of the iterable container.
-    *  @return             An anonymoust structur implementing begin() and end(). When passed in
+    *  @return             An anonymous struct implementing begin() and end(). When passed in
     *                      a range-based for loop, each element gives a tuple whose second element
     *                      is an iterable element, and whose first element is the corresponding
     *                      index.

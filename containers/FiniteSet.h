@@ -12,13 +12,14 @@
 #include <memory>
 #include <algorithm>
 #include <iterator>
+#include "containers.h"
 
 namespace dferone::containers {
 
 /// @brief La classe serve a contenere un insieme che può contenere
 /// solo interi tra 0 e n (escluso)
 ///
-/// In molte occasioni mi è capitato che gli insiemi di un insieme
+/// In molte occasioni mi è capitato che gli elementi di un insieme
 /// potessero essere solo gli interi tra 0 e una soglia stabilita n (escluso).
 /// Però l'insieme doveva permettermi di verificare velocemente se
 /// un elemento facesse o meno parte dell'insieme e mi permettesse di
@@ -45,8 +46,6 @@ public:
 	/// Tipo iteratore costante
 	using const_iterator  = typename std::vector<value_type>::const_iterator;
 
-	class ComplementSet;
-
 	/// @name Costruttori
 	/// @{
 
@@ -56,19 +55,19 @@ public:
 	/// L'insieme può contenere i valori [0, capacity); i valori
 	/// [0, size) vengono effettivamente inseriti nell'insieme
 	explicit inline FiniteSet(size_type capacity, size_type size = 0);
-    [[maybe_unused]] inline FiniteSet(size_type capacity, std::initializer_list<value_type> list);
-	inline FiniteSet(const FiniteSet &other);
-	inline FiniteSet(FiniteSet &&other) noexcept;
+    inline FiniteSet(size_type capacity, std::initializer_list<value_type> list);
+	inline FiniteSet(const FiniteSet &other) = default;
+	inline FiniteSet(FiniteSet &&other) = default;
 	/// @}
 	///
 	///
 	inline ~FiniteSet();
 
 	/// @return La cardinalità attuale dell'insieme
-	[[nodiscard]] inline size_type size()     const noexcept;
+	[[nodiscard]] inline size_type size() const noexcept;
 
 	/// @return true se l'insieme è vuoto, false altrimenti
-	[[nodiscard]] inline bool empty()    const noexcept;
+	[[nodiscard]] inline bool empty() const noexcept;
 
 	/// @return La cardinalità massima dell'insieme
 	[[nodiscard]] inline size_type capacity() const noexcept;
@@ -128,7 +127,7 @@ public:
 	/// @}
 
 	/// @return L'insieme complemento
-	inline const ComplementSet &complement() const noexcept { return *m_cs; }
+    inline auto complement() const noexcept { return std::ranges::subrange(cend(), elements_.cend()); }
 
 	/// @name Operatori di assegnamento
 	/// @{
@@ -154,108 +153,11 @@ private:
 	/// Taglia attuale dell'insieme
 	size_type size_;
 
-	/// Puntatore all'insieme complemento
-	std::unique_ptr<ComplementSet> m_cs;
 };
-
-/// @brief Permette di iterare sull'insieme complemento
-template <class T> requires std::integral<T>
-class FiniteSet<T>::ComplementSet {
-public:
-	/// @name Iterazione
-	/// @{
-
-	/// @return Iteratore al primo elemento
-	inline const_iterator begin() const noexcept {
-		return fs_->end();
-	}
-
-	inline const_iterator cbegin() const noexcept {
-		return fs_->cend();
-	}
-
-	/// @return Iteratore alla fine dell'insieme
-	inline const_iterator end() const noexcept {
-		return fs_->elements_.end();
-	}
-
-	inline const_iterator cend() const noexcept {
-		return fs_->elements_.cend();
-	}
-	/// @}
-
-	friend class FiniteSet;
-
-	/// @param os Output stream su cui stampare
-	/// @param cs Insieme complemento da stmapare
-	/// @return Output stream os
-	template <class R>
-	inline friend std::ostream &operator<<(std::ostream &os, const typename FiniteSet<R>::ComplementSet &cs);
-
-private:
-	/// Un ComplementSet può essere creato solo dal FiniteSet associato
-	///
-	/// @param fs @param fs L'insieme di cui si è complemento
-	explicit ComplementSet(FiniteSet *fs) : fs_(fs) {}
-
-	/// Puntatore all'insieme associato
-	FiniteSet *fs_;
-};
-
-}
-
-/// @namespace std
-/// @brief Fa l'overload di alcune funzioni presenti in std
-namespace std {
-/// @fn std::string to_string(const dferone::containers::FiniteSet &fs)
-/// Fa l'overload di std::to_string per produrre una stringa che rappresenta il FiniteSet
-///
-/// @param fs Insieme da stampare
-/// @return La stringa che lo rappresenta
-template <class T>
-inline std::string to_string(const dferone::containers::FiniteSet<T> &fs) {
-	string s("{ ");
-	auto it = cbegin(fs), end = cend(fs);
-
-	if (it != end) {
-		s += to_string(*it);
-
-		while (++it != end) {
-			s += ", " + to_string(*it);
-		}
-	}
-
-	return s + " }";
-}
-
-/// Fa l'overload di std::to_string per produrre una stringa che rappresenta il ComplementSet
-///
-/// @param cs Insieme complemento da stampare
-/// @return La stringa che lo rappresenta
-template <class T>
-inline std::string to_string(const typename dferone::containers::FiniteSet<T>::ComplementSet &cs) {
-	string s("{ ");
-	auto it = cbegin(cs), end = cend(cs);
-
-	if (it != end) {
-		s += to_string(*it);
-
-		while (++it != end) {
-			s += ", " + to_string(*it);
-		}
-	}
-
-	return s + " }";
-}
-
-}
-
-namespace dferone::containers {
-
 
 template <class T> requires std::integral<T>
 FiniteSet<T>::FiniteSet(size_type capacity, size_type size) :
-		elements_(capacity), positions_(capacity), capacity_(capacity), size_(size), m_cs(new ComplementSet(this)) {
+		elements_(capacity), positions_(capacity), capacity_(capacity), size_(size) {
 	if (size >= capacity)
 		size_ = capacity;
 
@@ -271,14 +173,6 @@ template <class T> requires std::integral<T>
 	for (auto el : list) {
 		this->add(el);
 	}
-}
-
-template <class T> requires std::integral<T>
-FiniteSet<T>::FiniteSet(const FiniteSet &other) : elements_(other.elements_), positions_(other.positions_), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
-}
-
-template <class T> requires std::integral<T>
-FiniteSet<T>::FiniteSet(FiniteSet &&other) noexcept : elements_(std::move(other.elements_)), positions_(std::move(other.positions_)), capacity_(other.capacity_), size_(other.size_), m_cs(new ComplementSet(this)) {
 }
 
 
@@ -347,7 +241,7 @@ void FiniteSet<T>::swappos(size_type i, size_type j) noexcept {
 
 template <class T> requires std::integral<T>
 std::ostream &operator<<(std::ostream &os, const FiniteSet<T> &fs) {
-	return os << std::to_string(fs);
+	return os << '{' << dferone::containers::to_string(fs) << '}';
 }
 
 template <class T> requires std::integral<T>
