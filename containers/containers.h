@@ -4,43 +4,7 @@
 
 #pragma once
 
-#include "tmp.h"
-
 namespace dferone::containers {
-    /** @typdef count_method_type
-     *  @brief  This is the type of a generic .count() method for a container.
-     *
-     *  This method is implemented in some stl containers and takes an element as its only parameter.
-     *
-     *  The code below is not mine, but by Alberto Santini and it was
-     *  origianlly available at https://github.com/alberto-santini/as
-     */
-    template<class Container, class T>
-    using count_method_type = decltype(std::declval<Container>().count(std::declval<T>()));
-
-    /** @typedef    has_count_method
-     *  @brief      This will inherit from true_type iff class Container has an appopriate .count() method.
-     *
-     *  The code below is not mine, but by Alberto Santini and it was
-     *  origianlly available at https://github.com/alberto-santini/as
-     */
-    template<class Container, class T>
-    using has_count_method = tmp::can_apply<count_method_type, Container, T>;
-
-    namespace detail {
-        // Overload of contains for when .count() is not available.
-        template<class Container, class T>
-        inline bool contains(std::false_type, const Container& container, const T& element) {
-            return std::find(container.begin(), container.end(), element) != container.end();
-        }
-
-        // Overload of contains for when .count() is available.
-        template<class Container, class T>
-        inline bool contains(std::true_type, const Container& container, const T& element) {
-            return container.count(element) > 0u;
-        }
-    }
-
     /** @brief  Tells whether a container contains a certain element.
      *
      *  The standard library's functions to find elements (e.g. std::find)
@@ -50,18 +14,24 @@ namespace dferone::containers {
      *  for when the container implements a .count() method, i.e. a more
      *  efficient way of searching elements than simple linear search.
      *
-     *  The code below is not mine, but by Alberto Santini and it was
-     *  origianlly available at https://github.com/alberto-santini/as
-     *
      *  @tparam Container    Container type.
      *  @tparam T            Containee type.
      *  @param  container    The container.
      *  @param  element      The element we are searching in \p container.
      *  @return              True iff \p element was found in \p container.
      */
-    template<class Container, class T>
+    template<std::ranges::range Container, class T>
     inline bool contains(const Container& container, const T& element) {
-        return detail::contains(has_count_method<const Container&, const T&>{}, container, element);
+        return std::find(container.begin(), container.end(), element) != container.end();
+    };
+
+    template<std::ranges::range Container, class T>
+    inline bool contains(const Container& container, const T& element)
+    requires requires {
+        {container.count(element)} -> std::convertible_to<typename Container::size_type>;
+    }
+    {
+        return container.count(element) > 0u;
     };
 
     namespace detail {
@@ -136,7 +106,7 @@ namespace dferone::containers {
     *
     *  @tparam Container   The container type.
     *  @param  iterable    An instance of the iterable container.
-    *  @return             An anonymoust structur implementing begin() and end(). When passed in
+    *  @return             An anonymous struct implementing begin() and end(). When passed in
     *                      a range-based for loop, each element gives a tuple whose second element
     *                      is an iterable element, and whose first element is the corresponding
     *                      index.

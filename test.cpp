@@ -6,22 +6,7 @@
 #include "Counter.h"
 #include "random.h"
 #include "console.h"
-#include "omp.h"
-
-#include <lemon/full_graph.h>
-#include "ranges.h"
 #include <iterator>
-
-template <typename T>
-class Prova {
-public:
-    Prova(T it) : it_(it) {}
-    T it_;
-    Prova &operator++() {
-        ++it_;
-        return *this;
-    }
-};
 
 namespace {
     using namespace dferone::containers;
@@ -48,7 +33,6 @@ namespace {
         ASSERT_EQ(bs.top(), 10);
 
         ASSERT_TRUE(contains(bs, 1));
-        std::cout << bs << std::endl;
     }
 
     TEST(Containers, finite_set) {
@@ -72,6 +56,9 @@ namespace {
         ASSERT_EQ(fs.size(), 3);
 
         ASSERT_TRUE(contains(fs, 1));
+        join_and_print(fs, std::cout);
+        std::cout << '\n';
+        join_and_print(fs.complement(), std::cout);
     }
 
     TEST(Containers, j_and_p) {
@@ -119,18 +106,22 @@ namespace {
         c -= 3;
         ASSERT_DOUBLE_EQ(c, -2.0);
 
+        ASSERT_TRUE(c == -2.0);
+
         Counter prova("prova");
         ASSERT_DOUBLE_EQ(prova, 0.0);
         prova = 3.0;
         ASSERT_DOUBLE_EQ(prova, 3.0);
-    }
 
-    TEST(counter, dopo) {
-        Counter c("prova");
-        ASSERT_DOUBLE_EQ(c, 3.0);
-        ASSERT_DOUBLE_EQ(c++, 3.0);
-        ASSERT_DOUBLE_EQ(c, 4.0);
-        ASSERT_DOUBLE_EQ(++c, 5.0);
+        Counter c2("prova");
+        ASSERT_DOUBLE_EQ(c2, 3.0);
+        ASSERT_DOUBLE_EQ(c2++, 3.0);
+        ASSERT_DOUBLE_EQ(c2, 4.0);
+        ASSERT_DOUBLE_EQ(++c2, 5.0);
+
+        Counter secondo("secondo");
+        secondo = 5.0;
+        ASSERT_EQ(c2, secondo);
     }
 
 
@@ -145,15 +136,6 @@ namespace {
         }
 
         ASSERT_DOUBLE_EQ(c, n_threads);
-    }
-
-    TEST(prova, prova) {
-        lemon::FullDigraph g(5);
-
-        auto bs = dferone::ranges::backward_star(g, g.nodeFromId(0));
-        for (auto edge : bs | std::views::take(3)) {
-            std::cout << "edge: " << g.id(g.source(edge)) << " -> " << g.id(g.target(edge)) << "\n";
-        }
     }
 #endif
 
