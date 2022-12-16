@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <sstream>
+#include <tuple>
+
 namespace dferone::containers {
     /** @brief  Tells whether a container contains a certain element.
      *
