@@ -10,7 +10,7 @@
 namespace dferone::counters {
 
 #ifdef DFERONE_THREAD_SAFE
-std::mutex Counter::mutex = std::mutex();
+constinit std::mutex Counter::mutex = std::mutex();
 #endif
 
 std::map<std::string, double> Counter::static_counters_ = std::map<std::string, double>();
