@@ -240,7 +240,7 @@ void FiniteSet<T>::swappos(size_type i, size_type j) noexcept {
 }
 
 template <class T> requires std::integral<T>
-std::ostream &operator<<(std::ostream &os, const FiniteSet<T> &fs) {
+inline std::ostream &operator<<(std::ostream &os, const FiniteSet<T> &fs) {
 	return os << '{' << dferone::containers::to_string(fs) << '}';
 }
 
@@ -263,7 +263,7 @@ template <class T> requires std::integral<T>
 FiniteSet<T>::~FiniteSet() = default;
 
 template <class T> requires std::integral<T>
-std::ostream &operator<<(std::ostream &os, const typename FiniteSet<T>::ComplementSet &cs) {
+inline std::ostream &operator<<(std::ostream &os, const typename FiniteSet<T>::ComplementSet &cs) {
 	return os << std::to_string(cs);
 }
 
