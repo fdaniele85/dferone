@@ -9,9 +9,8 @@
 
 namespace dferone::counters {
 
-Counter *Counter::singleton = nullptr;
 #ifdef DFERONE_THREAD_SAFE
-std::mutex Counter::mutex = std::mutex();
+constinit std::mutex Counter::mutex = std::mutex();
 #endif
 
 std::map<std::string, double> Counter::static_counters_ = std::map<std::string, double>();
@@ -73,5 +72,15 @@ std::map<std::string, double> Counter::static_counters_ = std::map<std::string, 
         return static_counters_[name_];
     }
 
+    bool Counter::operator==(const Counter &other) const {
+#ifdef DFERONE_THREAD_SAFE
+        std::lock_guard<std::mutex> lock(mutex);
+#endif
 
-} /* namespace dferone */
+        if (name_ == other.name_) {
+            return true;
+        }
+
+        return static_counters_[name_] == static_counters_[other.name_];
+    }
+}

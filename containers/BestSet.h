@@ -22,6 +22,9 @@ namespace dferone::containers {
 /// that returns true if lhs is better than rhs
 ///
 template <typename T, typename comparator = std::greater<T>>
+requires requires(T el, T el2, comparator comp) {
+    comp(el, el2);
+}
 class BestSet {
 public:
 	using value_type = T;
@@ -36,6 +39,7 @@ public:
 	/// @{
 
 	/// @param capacity The capacity of the set
+	/// @param c        The comparator
 	inline BestSet(size_type capacity, comparator c = comparator()) : capacity_(capacity) , elements_(capacity), c_(c) {};
 
 	/// @brief Copy constructor

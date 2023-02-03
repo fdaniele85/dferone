@@ -5,7 +5,7 @@
 #pragma once
 
 #include <fstream>
-
+#include <limits>
 
 namespace dferone::streams {
 
