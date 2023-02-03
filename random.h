@@ -6,6 +6,9 @@
 
 #include <random>
 #include <concepts>
+#include <array>
+#include <cassert>
+#include <functional>
 
 /// Random namespace
 namespace dferone::random {
