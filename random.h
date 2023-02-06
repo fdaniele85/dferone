@@ -69,6 +69,7 @@ namespace dferone::random {
     }
 
 
+
     /// Randomly select an element from a container with uniform distribution
     /// \tparam Container Container type
     /// \tparam Random Random number generator
@@ -104,6 +105,31 @@ namespace dferone::random {
 
         std::uniform_int_distribution<uint> dis(0, size - 1);
         auto index = dis(rand);
+        std::advance(q, index);
+        return q;
+    }
+
+    /// Randomly select an element from a container with geometric distribution
+    /// \tparam Container Container type
+    /// \tparam Random Random number generator
+    /// \param c The container
+    /// \param rand The number generator
+    /// \param distribution_parameter The parameter of the geometric distribution
+    /// \return an element of the container
+    template<std::ranges::random_access_range Container, class Random = std::mt19937_64>
+    typename Container::const_iterator selectRandom(const Container &c, Random &rand, double distribution_parameter)
+    requires requires {
+        { c.size() } -> std::same_as<typename Container::size_type>;
+    } {
+        assert(!c.empty());
+
+        auto size = c.size();
+        auto q = c.cbegin();
+
+        std::geometric_distribution<int> gd(distribution_parameter);
+        auto l = gd(rand);
+        auto index = static_cast<uint>(l % size);
+
         std::advance(q, index);
         return q;
     }
