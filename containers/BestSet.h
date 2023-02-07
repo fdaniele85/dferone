@@ -177,6 +177,12 @@ public:
         return out << ']';
     }
 
+    /// @brief Checks if the container is empty
+    /// \return True if the container is empty, false otherwise
+    inline bool empty() const {
+        return size_ == 0;
+    }
+
 
 private:
 	/// Capacità massima dell'insieme
