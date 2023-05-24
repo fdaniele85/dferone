@@ -7,6 +7,7 @@
 #include "random.h"
 #include "console.h"
 #include <iterator>
+#include "welford.h"
 
 namespace {
     using namespace dferone::containers;
@@ -139,5 +140,28 @@ namespace {
     }
 #endif
 
+    TEST(welford, mean) {
+        WelfordAlgorithm wa;
+        std::vector<double> x(1000);
+        std::iota(x.begin(), x.end(), 0);
+        double mean = 0;
+        double variance = 0;
+        double std_dev = 0;
+        double sum = 0;
+        for (auto el : x) {
+            sum += el;
+            wa.addElement(el);
+        }
+        mean = sum / x.size();
+        for (auto el : x) {
+            variance += std::pow(el - mean, 2);
+        }
+        variance /= x.size();
+        std_dev = std::sqrt(variance);
+
+        ASSERT_DOUBLE_EQ(mean, wa.getMean());
+        ASSERT_DOUBLE_EQ(variance, wa.getVariance());
+        ASSERT_DOUBLE_EQ(std_dev, wa.getStdDev());
+    }
 
 }

@@ -38,7 +38,7 @@ namespace dferone::random {
     *  @tparam Prng            The type of the pseudo-random number generator.
     *  @param  weights         The non-empty vector with weights.
     *  @param  prng            The pseudo-random number generator.
-    *  @return                 An index of the vector of \ref weights.
+    *  @return                 An index of the vector of weights.
     */
     template<std::floating_point FloatingPoint, class Prng = std::mt19937_64>
     inline typename std::vector<FloatingPoint>::size_type roulette_wheel(

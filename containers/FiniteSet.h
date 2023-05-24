@@ -16,8 +16,7 @@
 
 namespace dferone::containers {
 
-/// @brief La classe serve a contenere un insieme che può contenere
-/// solo interi tra 0 e n (escluso)
+/// @brief A container that can contains integers from 0 and n (not included)
 ///
 /// In molte occasioni mi è capitato che gli elementi di un insieme
 /// potessero essere solo gli interi tra 0 e una soglia stabilita n (escluso).
