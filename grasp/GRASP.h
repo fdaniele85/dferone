@@ -31,7 +31,7 @@ namespace dferone::grasp {
     }
     class GRASP {
     public:
-        GRASP(const ProblemInstance &instance, unsigned int seed) : instance_(instance), generator_(seed) {}
+        GRASP(const ProblemInstance &instance, unsigned int seed) : instance_(instance), generator_(seed), best_solution_(instance) {}
 
         /** @brief Add a Solution Costructor to construct a Solution at each GRASP iteration
          *
