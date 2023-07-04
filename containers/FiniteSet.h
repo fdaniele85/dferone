@@ -57,6 +57,13 @@ public:
     inline FiniteSet(size_type capacity, std::initializer_list<value_type> list);
 	inline FiniteSet(const FiniteSet &other) = default;
 	inline FiniteSet(FiniteSet &&other) = default;
+
+    template <std::ranges::range Range>
+    inline FiniteSet(size_type capacity, Range r) : FiniteSet(capacity, 0) {
+        for (auto el : r) {
+            add(el);
+        }
+    }
 	/// @}
 	///
 	///
