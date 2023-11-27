@@ -8,6 +8,7 @@
 #include "console.h"
 #include <iterator>
 #include "welford.h"
+#include "utilities.h"
 
 namespace {
     using namespace dferone::containers;
@@ -141,7 +142,7 @@ namespace {
 #endif
 
     TEST(welford, mean) {
-        WelfordAlgorithm wa;
+        dferone::WelfordAlgorithm wa;
         std::vector<double> x(1000);
         std::iota(x.begin(), x.end(), 0);
         double mean = 0;
@@ -162,6 +163,11 @@ namespace {
         ASSERT_DOUBLE_EQ(mean, wa.getMean());
         ASSERT_DOUBLE_EQ(variance, wa.getVariance());
         ASSERT_DOUBLE_EQ(std_dev, wa.getStdDev());
+    }
+
+    TEST(lik_unl, lik) {
+        ASSERT_TRUE(likely(0 == 0));
+        ASSERT_FALSE(unlikely(0 == 1));
     }
 
 }

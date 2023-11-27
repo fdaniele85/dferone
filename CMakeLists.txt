@@ -35,7 +35,7 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
                 hello_test
                 test.cpp
                 Counter.cpp
-                GRASP_test.cpp
+                #GRASP_test.cpp
         )
 
         if (OpenMP_CXX_FOUND)

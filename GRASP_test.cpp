@@ -9,7 +9,7 @@ namespace {
     struct Instance {};
     struct Solution {
     public:
-        explicit Solution(double c = std::numeric_limits<double>::max()) {
+        explicit Solution(const Instance & instance, double c = std::numeric_limits<double>::max()) {
             cost_ = c;
         }
         [[nodiscard]] constexpr double getCost() const { return cost_; }
@@ -23,7 +23,7 @@ namespace {
     public:
         Solution createSolution(const Instance& instance, std::mt19937& mt) override {
             std::uniform_real_distribution<double> dis(0, 10);
-            Solution s(dis(mt));
+            Solution s(instance, dis(mt));
             for (uint i = 0; i < 1000000; ++i) {
                 auto s = std::sqrt(4);
             }
