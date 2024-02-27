@@ -9,6 +9,8 @@
 #include <iterator>
 #include "welford.h"
 #include "utilities.h"
+#include "containers/Matrix.h"
+#include "containers/SymmetricMatrix.h"
 
 namespace {
     using namespace dferone::containers;
@@ -168,6 +170,20 @@ namespace {
     TEST(lik_unl, lik) {
         ASSERT_TRUE(likely(0 == 0));
         ASSERT_FALSE(unlikely(0 == 1));
+    }
+
+    TEST(Mat, mat) {
+        Matrix<int> mat(3, 3);
+        ASSERT_EQ(mat(0, 0), 0);
+        mat(0, 0) = 1;
+        ASSERT_EQ(mat(0, 0), 1);
+    }
+
+    TEST(Mat, sym) {
+        SymmetricMatrix<int> sym_mat(3, 1);
+        ASSERT_EQ(sym_mat(2, 0), 1);
+        sym_mat(2, 0) = 3;
+        ASSERT_EQ(sym_mat(0, 2), 3);
     }
 
 }
