@@ -6,6 +6,8 @@
 
 #include <cmath>
 
+namespace dferone {
+
 /// \brief Implement the Welford's algorithm to calculate online the variance and the standard deviation
 class WelfordAlgorithm {
 public:
@@ -39,3 +41,5 @@ private:
     double mean_{0.0};
     double sum_of_squares_{0.0};
 };
+
+}

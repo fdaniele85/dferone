@@ -6,6 +6,7 @@
 
 #include <sstream>
 #include <tuple>
+#include <iostream>
 
 namespace dferone::containers {
     /** @brief  Tells whether a container contains a certain element.

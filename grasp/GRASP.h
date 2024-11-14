@@ -26,7 +26,7 @@ namespace dferone::grasp {
      *                          * double getCost() const, returning the cost of the solution (the smaller the better).
     */
     template<class ProblemInstance, std::copy_constructible Solution> requires requires(Solution s) {
-        { s.getCost() } ->  std::same_as<double>;
+        { s.getCost() } ->  std::convertible_to<double>;
         std::assignable_from<Solution, Solution>;
     }
     class GRASP {
@@ -86,6 +86,11 @@ namespace dferone::grasp {
         void setTarget(double target) {
             target_ = target;
         }
+
+        void addVisitor(std::unique_ptr<AlgorithmVisitor<Solution>> &&visitor) {
+            visitor_ = std::move(visitor);
+        }
+
 
     private:
         /*! @brief  Fire up a single thread.
@@ -150,6 +155,11 @@ namespace dferone::grasp {
                     // Visitor can modify best_solution
                     std::lock_guard _(best_solution_mutex_);
                     visitor_->on_iteration_end(status);
+                }
+
+                if (status.new_best_) {
+                    std::lock_guard _(printing_mutex_);
+                    LOG(INFO) << "Iteration " << current_iteration_ << ": updating best solution to " << status.best_solution_.getCost();
                 }
             }
         }
@@ -234,7 +244,7 @@ namespace dferone::grasp {
         std::size_t max_seconds_{0};
 
         /// Target to reach
-        double target_{std::numeric_limits<double>::min()};
+        double target_{std::numeric_limits<double>::lowest()};
 
         // Mutexes
         std::mutex best_solution_mutex_;

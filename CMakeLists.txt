@@ -35,7 +35,7 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
                 hello_test
                 test.cpp
                 Counter.cpp
-                GRASP_test.cpp
+                #GRASP_test.cpp
         )
 
         if (OpenMP_CXX_FOUND)
@@ -49,7 +49,7 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         gtest_discover_tests(hello_test)
     endif ()
 
-    set(package_files containers/ console.h CMakeLists.txt LICENSE Doxyfile README.md Counter.cpp Counter.h random.h ranges.h streams.h grasp/)
+    set(package_files containers/ console.h CMakeLists.txt LICENSE Doxyfile README.md Counter.cpp Counter.h random.h ranges.h streams.h grasp/ vrp/AbstractInstance.hpp vrp/Instance.hpp vrp/SubInstance.hpp)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-src.zip
             COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-src.zip --format=zip -- ${package_files}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

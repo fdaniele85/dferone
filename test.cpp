@@ -8,6 +8,9 @@
 #include "console.h"
 #include <iterator>
 #include "welford.h"
+#include "utilities.h"
+#include "containers/Matrix.h"
+#include "containers/SymmetricMatrix.h"
 
 namespace {
     using namespace dferone::containers;
@@ -141,7 +144,7 @@ namespace {
 #endif
 
     TEST(welford, mean) {
-        WelfordAlgorithm wa;
+        dferone::WelfordAlgorithm wa;
         std::vector<double> x(1000);
         std::iota(x.begin(), x.end(), 0);
         double mean = 0;
@@ -162,6 +165,25 @@ namespace {
         ASSERT_DOUBLE_EQ(mean, wa.getMean());
         ASSERT_DOUBLE_EQ(variance, wa.getVariance());
         ASSERT_DOUBLE_EQ(std_dev, wa.getStdDev());
+    }
+
+    TEST(lik_unl, lik) {
+        ASSERT_TRUE(likely(0 == 0));
+        ASSERT_FALSE(unlikely(0 == 1));
+    }
+
+    TEST(Mat, mat) {
+        Matrix<int> mat(3, 3);
+        ASSERT_EQ(mat(0, 0), 0);
+        mat(0, 0) = 1;
+        ASSERT_EQ(mat(0, 0), 1);
+    }
+
+    TEST(Mat, sym) {
+        SymmetricMatrix<int> sym_mat(3, 1);
+        ASSERT_EQ(sym_mat(2, 0), 1);
+        sym_mat(2, 0) = 3;
+        ASSERT_EQ(sym_mat(0, 2), 3);
     }
 
 }
