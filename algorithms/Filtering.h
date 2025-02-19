@@ -2,7 +2,7 @@
 
 #include "../welford.h"
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
 
     /*! @brief Filtering mechanism for the Local Search */
     class Filtering {

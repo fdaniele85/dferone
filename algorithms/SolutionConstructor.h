@@ -7,7 +7,7 @@
 #include <random>
 #include <memory>
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
 
     template<class ProblemInstance, class Solution>
     struct SolutionConstructor {

@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
     /**
      * This class implements a Visitor for the algorithm, to be called at
      * specific points during the solution process.
@@ -42,4 +42,4 @@ namespace dferone::grasp {
          */
         virtual ~AlgorithmVisitor() = default;
     };
-} // namespace dferone::grasp
+} // namespace dferone::algorithms

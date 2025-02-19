@@ -14,7 +14,7 @@
 #include "AlgorithmStatus.h"
 #include "AlgorithmVisitor.h"
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
     /** @brief This class models the GRASP algorithm solver
      *
      *  @tparam ProblemInstance Class which represents an instance_ of the problem.

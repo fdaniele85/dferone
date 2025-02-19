@@ -7,7 +7,7 @@
 #include <random>
 #include <memory>
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
 
     template<class Solution>
     struct LocalSearch {

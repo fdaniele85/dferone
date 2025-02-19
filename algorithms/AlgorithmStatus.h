@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
     template<class Solution>
     struct AlgorithmStatus {
         // New solution produced at this iter
@@ -24,4 +24,4 @@ namespace dferone::grasp {
         AlgorithmStatus(Solution& new_solution, Solution& best_solution)
                 : new_solution_{new_solution}, best_solution_{best_solution} {}
     };
-} // namespace dferone::grasp
+} // namespace dferone::algorithms
