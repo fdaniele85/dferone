@@ -11,6 +11,7 @@
 #include "utilities.h"
 #include "containers/Matrix.h"
 #include "containers/SymmetricMatrix.h"
+#include "containers/SoterdVector.h"
 
 namespace {
     using namespace dferone::containers;
@@ -37,6 +38,24 @@ namespace {
         ASSERT_EQ(bs.top(), 10);
 
         ASSERT_TRUE(contains(bs, 1));
+    }
+
+    TEST(Containers, sorted_set) {
+        SortedVector<int> bs;
+        bs.add(10);
+        ASSERT_EQ(bs.size(), 1);
+        ASSERT_EQ(bs.front(), 10);
+        bs.add(15);
+        ASSERT_EQ(bs.front(), 10);
+        ASSERT_EQ(bs.size(), 2);
+        bs.add(1);
+        bs.add(2);
+        ASSERT_EQ(bs.front(), 1);
+        bs.erase(0);
+        ASSERT_EQ(bs.size(), 3);
+        ASSERT_EQ(bs.front(), 2);
+
+        ASSERT_TRUE(contains(bs, 15));
     }
 
     TEST(Containers, finite_set) {

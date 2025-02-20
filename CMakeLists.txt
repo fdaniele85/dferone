@@ -80,5 +80,15 @@ else (DOXYGEN_FOUND)
     message("Doxygen need to be installed to generate the doxygen documentation")
 endif (DOXYGEN_FOUND)
 
+set(alg_files
+        algorithms/AlgorithmStatus.h
+        algorithms/AlgorithmVisitor.h
+        algorithms/ALNS.h
+        algorithms/DestroyMethod.h
+        algorithms/Filtering.h
+        algorithms/GRASP.h
+        algorithms/LocalSearch.h
+        algorithms/RepairMethod.h
+        algorithms/SolutionConstructor.h)
 
-add_library(dferone Counter.cpp)
+add_library(dferone Counter.cpp ${alg_files})
