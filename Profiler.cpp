@@ -24,7 +24,7 @@ namespace dferone {
     void Profiler::print(std::ostream &os) {
         for (const auto &p : static_timers_) {
             counters::Counter c(p.first);
-            os << "Timer " << p.first << ": " << p.second.realTime() << " total seconds, " << (p.second.realTime() / c) << " seconds per call\n";
+            os << "Timer " << p.first << ": " << p.second.realTime() << " total seconds. Number of calls: " << c << ", " << (p.second.realTime() / c) << " seconds per call\n";
         }
     }
 } // namespace dferone
