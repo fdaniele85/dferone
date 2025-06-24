@@ -91,4 +91,4 @@ set(alg_files
         algorithms/RepairMethod.h
         algorithms/SolutionConstructor.h)
 
-add_library(dferone Counter.cpp ${alg_files})
+add_library(dferone Counter.cpp Profiler.cpp ${alg_files})

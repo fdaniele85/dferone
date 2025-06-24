@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <boost/timer/timer.hpp>
 #include <map>
 #include <string>
 #include <compare>
