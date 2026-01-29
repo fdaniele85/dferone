@@ -1,17 +1,17 @@
 #include <gtest/gtest.h>
 
-#include "containers/BestSet.h"
-#include "containers/FiniteSet.h"
-#include "containers/containers.h"
-#include "Counter.h"
-#include "random.h"
-#include "console.h"
+#include "../Counter.h"
+#include "../console.h"
+#include "../containers/BestSet.h"
+#include "../containers/FiniteSet.h"
+#include "../containers/Matrix.h"
+#include "../containers/SoterdVector.h"
+#include "../containers/SymmetricMatrix.h"
+#include "../containers/containers.h"
+#include "../random.h"
+#include "../utilities.h"
+#include "../welford.h"
 #include <iterator>
-#include "welford.h"
-#include "utilities.h"
-#include "containers/Matrix.h"
-#include "containers/SymmetricMatrix.h"
-#include "containers/SoterdVector.h"
 
 namespace {
     using namespace dferone::containers;
