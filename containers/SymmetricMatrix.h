@@ -21,8 +21,8 @@ namespace dferone::containers {
             n_ = rows;
             std::size_t size = ((n_ * n_ + n_) / 2) * sizeof(T);
             data_ = new T[size];
-            for (uint i = 0; i < n_; ++i) {
-                for (uint j = 0; j <= i; ++j) {
+            for (std::size_t i = 0; i < n_; ++i) {
+                for (std::size_t j = 0; j <= i; ++j) {
                     this->operator()(i, j) = initializer;
                 }
             }
