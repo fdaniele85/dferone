@@ -1,5 +1,5 @@
-#include "Profiler.h"
-#include "Counter.h"
+#include <dferone/Profiler.h>
+#include <dferone/Counter.h>
 
 namespace dferone {
 

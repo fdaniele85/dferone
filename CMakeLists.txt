@@ -9,13 +9,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Library target
 # ============================================================================
 add_library(dferone
-        Counter.cpp
-        Profiler.cpp
+        src/Counter.cpp
+        src/Profiler.cpp
 )
 
 # Modern CMake: usa target_* invece di add_*
 target_include_directories(dferone PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 

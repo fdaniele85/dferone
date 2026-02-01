@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-#include "../Counter.h"
-#include "../console.h"
-#include "../containers/BestSet.h"
-#include "../containers/FiniteSet.h"
-#include "../containers/Matrix.h"
-#include "../containers/SoterdVector.h"
-#include "../containers/SymmetricMatrix.h"
-#include "../containers/containers.h"
-#include "../random.h"
-#include "../utilities.h"
-#include "../welford.h"
+#include <dferone/containers/FiniteSet.h>
+#include <dferone/containers/BestSet.h>
+#include <dferone/containers/Matrix.h>
+#include <dferone/containers/SoterdVector.h>
+#include <dferone/containers/SymmetricMatrix.h>
+#include <dferone/containers/containers.h>
+#include <dferone/Counter.h>
+#include <dferone/console.h>
+#include <dferone/random.h>
+#include <dferone/utilities.h>
+#include <dferone/welford.h>
 #include <iterator>
 
 namespace {

@@ -5,7 +5,7 @@
  *      Author: daniele
  */
 
-#include "Counter.h"
+#include "../include/dferone/Counter.h"
 
 namespace dferone::counters {
 

@@ -78,3 +78,4 @@ fabric.properties
 
 # Doxygen output
 doc/
+/.idea/copilot.data.migration.ask2agent.xml
