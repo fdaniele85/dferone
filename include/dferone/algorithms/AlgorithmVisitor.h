@@ -28,14 +28,14 @@ namespace dferone::algorithms {
          * @param alg_status An AlgorithmStatus object containing info on the current state of the algorithm.
          * @return true      If the local search must be performed
          */
-        virtual bool on_construction_end(AlgorithmStatus<Solution>& alg_status) = 0;
+        virtual bool on_construction_end(AlgorithmStatus<Solution> &alg_status) = 0;
 
         /**
          * This method is called at the end of every iteration.
          *
          * @param alg_status    An AlgorithmStatus object containing info on the current state of the algorithm.
          */
-        virtual void on_iteration_end(AlgorithmStatus<Solution>& alg_status) = 0;
+        virtual void on_iteration_end(AlgorithmStatus<Solution> &alg_status) = 0;
 
         /**
          * Virtual destructor.

@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <random>
 #include <memory>
+#include <random>
 
 namespace dferone::algorithms {
 
     template<class Solution>
     struct LocalSearch {
-        virtual void search(Solution &s, std::mt19937& mt) = 0;
+        virtual void search(Solution &s, std::mt19937 &mt) = 0;
         virtual std::unique_ptr<LocalSearch<Solution>> clone() const = 0;
     };
-}
+} // namespace dferone::algorithms

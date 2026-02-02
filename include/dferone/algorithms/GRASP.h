@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include <random>
-#include <memory>
-#include <concepts>
-#include <thread>
-#include <algorithm>
-#include "SolutionConstructor.h"
-#include "LocalSearch.h"
 #include "AlgorithmStatus.h"
 #include "AlgorithmVisitor.h"
+#include "LocalSearch.h"
+#include "SolutionConstructor.h"
+#include <algorithm>
+#include <concepts>
+#include <memory>
+#include <random>
+#include <thread>
 
 namespace dferone::algorithms {
     /** @brief This class models the GRASP algorithm solver
@@ -24,11 +24,12 @@ namespace dferone::algorithms {
      *                          * Solution(const Solution&) a copy constructor. Can be the implicit default.
      *                          * void operator=(const Solution& other) an assignment operator. Can be the implicit default.
      *                          * double getCost() const, returning the cost of the solution (the smaller the better).
-    */
-    template<class ProblemInstance, std::copy_constructible Solution> requires requires(Solution s) {
-        { s.getCost() } ->  std::convertible_to<double>;
-        std::assignable_from<Solution, Solution>;
-    }
+     */
+    template<class ProblemInstance, std::copy_constructible Solution>
+        requires requires(Solution s) {
+            { s.getCost() } -> std::convertible_to<double>;
+            std::assignable_from<Solution, Solution>;
+        }
     class GRASP {
     public:
         GRASP(const ProblemInstance &instance, unsigned int seed) : instance_(instance), generator_(seed), best_solution_(instance) {}
@@ -37,18 +38,13 @@ namespace dferone::algorithms {
          *
          * @param constructor SolutionConstructor<ProblemInstance, Solution> pointer
          */
-        void addSolutionConstructor(std::unique_ptr<SolutionConstructor<ProblemInstance, Solution>> &&constructor) {
-            constructor_ = std::move(constructor);
-        }
+        void addSolutionConstructor(std::unique_ptr<SolutionConstructor<ProblemInstance, Solution>> &&constructor) { constructor_ = std::move(constructor); }
 
         /** @brief Add a Local search to improve a Solution at each GRASP iteration
          *
          * @param ls LocalSearch<Solution> pointer
          */
-        void addLocalSearch(std::unique_ptr<LocalSearch<Solution>> &&ls) {
-            ls_ = std::move(ls);
-        }
-
+        void addLocalSearch(std::unique_ptr<LocalSearch<Solution>> &&ls) { ls_ = std::move(ls); }
 
         Solution solve(std::uint32_t num_threads) {
             if (!constructor_) {
@@ -75,22 +71,13 @@ namespace dferone::algorithms {
             return best_solution_;
         }
 
-        void setMaxIterations(std::size_t maxIterations) {
-            max_iterations_ = maxIterations;
-        }
+        void setMaxIterations(std::size_t maxIterations) { max_iterations_ = maxIterations; }
 
-        void setMaxSeconds(std::size_t maxSeconds) {
-            max_seconds_ = maxSeconds;
-        }
+        void setMaxSeconds(std::size_t maxSeconds) { max_seconds_ = maxSeconds; }
 
-        void setTarget(double target) {
-            target_ = target;
-        }
+        void setTarget(double target) { target_ = target; }
 
-        void addVisitor(std::unique_ptr<AlgorithmVisitor<Solution>> &&visitor) {
-            visitor_ = std::move(visitor);
-        }
-
+        void addVisitor(std::unique_ptr<AlgorithmVisitor<Solution>> &&visitor) { visitor_ = std::move(visitor); }
 
     private:
         /*! @brief  Fire up a single thread.
@@ -98,7 +85,6 @@ namespace dferone::algorithms {
          *  @param   thread_id     Progressive id of the thread.
          */
         void start_thread(std::uint32_t thread_id, std::mt19937 &mt) {
-
             auto solution_constructor = constructor_->clone();
             std::unique_ptr<LocalSearch<Solution>> ls{nullptr};
             if (ls_) {
@@ -121,8 +107,7 @@ namespace dferone::algorithms {
                 if (max_seconds_ > 0) {
                     // Calculate elapsed time
                     auto current_time = std::chrono::high_resolution_clock::now();
-                    auto elapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(
-                            current_time - start_time_).count();
+                    auto elapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(current_time - start_time_).count();
                     if (elapsed_time > max_seconds_) {
                         break;
                     }
@@ -179,13 +164,12 @@ namespace dferone::algorithms {
                 generators_.emplace_back(seeds);
             }
 
-
             std::vector<std::jthread> threads(num_threads);
             for (auto i = 0u; i < num_threads; ++i) {
                 threads[i] = std::jthread([i, &generators_, this]() { start_thread(i, generators_[i]); });
             }
 
-            for (auto &thread: threads) {
+            for (auto &thread : threads) {
                 thread.join();
             }
         }
@@ -217,7 +201,6 @@ namespace dferone::algorithms {
             }
             return false;
         }
-
 
         /// Problem instance
         const ProblemInstance instance_;
@@ -259,7 +242,6 @@ namespace dferone::algorithms {
         static constexpr double eps_ = 1e-6;
 
         /// Visitor
-        std::unique_ptr<AlgorithmVisitor<Solution>> visitor_ {nullptr};
-
+        std::unique_ptr<AlgorithmVisitor<Solution>> visitor_{nullptr};
     };
-}
+} // namespace dferone::algorithms

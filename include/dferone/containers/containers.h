@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <tuple>
-#include <algorithm>
 
 namespace dferone::containers {
     /** @brief  Tells whether a container contains a certain element.
