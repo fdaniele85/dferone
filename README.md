@@ -1,6 +1,6 @@
 # dferone
 
-[![CI](https://github.com/TUO_USERNAME/dferone/actions/workflows/ci.yml/badge.svg)](https://github.com/TUO_USERNAME/dferone/actions/workflows/ci.yml)
+[![CI](https://github.com/fdaniele85/dferone/actions/workflows/ci.yml/badge.svg)](https://github.com/fdaniele85/dferone/actions/workflows/ci.yml)
 
 ### Description
 Miscellaneous utilities I use in my Operational Research projects.

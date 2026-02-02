@@ -6,33 +6,31 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ============================================================================
-# Library target
+# Header-only library target
 # ============================================================================
-add_library(dferone
-        src/Counter.cpp
-        src/Profiler.cpp
-)
+add_library(dferone INTERFACE)
 
-# Modern CMake: usa target_* invece di add_*
-target_include_directories(dferone PUBLIC
+# Alias per uso consistente (importante per FetchContent)
+add_library(dferone::dferone ALIAS dferone)
+
+# Include directories
+target_include_directories(dferone INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
-target_compile_features(dferone PUBLIC cxx_std_20)
+# C++20 requirement
+target_compile_features(dferone INTERFACE cxx_std_20)
 
 # Opzionale: thread safety
 option(DFERONE_THREAD_SAFE "Enable thread-safe features" OFF)
 if(DFERONE_THREAD_SAFE)
-    target_compile_definitions(dferone PUBLIC DFERONE_THREAD_SAFE)
+    target_compile_definitions(dferone INTERFACE DFERONE_THREAD_SAFE)
     find_package(OpenMP)
     if(OpenMP_CXX_FOUND)
-        target_link_libraries(dferone PUBLIC OpenMP::OpenMP_CXX)
+        target_link_libraries(dferone INTERFACE OpenMP::OpenMP_CXX)
     endif()
 endif()
-
-# Alias per uso consistente
-add_library(dferone::dferone ALIAS dferone)
 
 # ============================================================================
 # Tests (solo se è il progetto principale)

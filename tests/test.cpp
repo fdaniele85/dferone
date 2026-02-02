@@ -6,7 +6,6 @@
 #include <dferone/containers/SoterdVector.h>
 #include <dferone/containers/SymmetricMatrix.h>
 #include <dferone/containers/containers.h>
-#include <dferone/Counter.h>
 #include <dferone/console.h>
 #include <dferone/random.h>
 #include <dferone/utilities.h>
@@ -17,7 +16,6 @@ namespace {
     using namespace dferone::containers;
     using namespace dferone::random;
     using namespace dferone::console;
-    using namespace dferone::counters;
 
     TEST(Containers, best_set) {
         BestSet<int> bs(5);
@@ -121,46 +119,6 @@ namespace {
         }
     }
 
-    TEST(counter, c) {
-        Counter c;
-        ASSERT_DOUBLE_EQ(c, 0.0);
-        ++c;
-        ASSERT_DOUBLE_EQ(c, 1.0);
-        c -= 3;
-        ASSERT_DOUBLE_EQ(c, -2.0);
-
-        ASSERT_TRUE(c == -2.0);
-
-        Counter prova("prova");
-        ASSERT_DOUBLE_EQ(prova, 0.0);
-        prova = 3.0;
-        ASSERT_DOUBLE_EQ(prova, 3.0);
-
-        Counter c2("prova");
-        ASSERT_DOUBLE_EQ(c2, 3.0);
-        ASSERT_DOUBLE_EQ(c2++, 3.0);
-        ASSERT_DOUBLE_EQ(c2, 4.0);
-        ASSERT_DOUBLE_EQ(++c2, 5.0);
-
-        Counter secondo("secondo");
-        secondo = 5.0;
-        ASSERT_EQ(c2, secondo);
-    }
-
-
-#ifdef DFERONE_THREAD_SAFE
-    TEST(counter, multithread) {
-        Counter c("prova");
-        c = 0;
-        uint n_threads = 500;
-#pragma omp parallel num_threads(n_threads) default(none) shared(c)
-        {
-            ++c;
-        }
-
-        ASSERT_DOUBLE_EQ(c, n_threads);
-    }
-#endif
 
     TEST(welford, mean) {
         dferone::WelfordAlgorithm wa;
