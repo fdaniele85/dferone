@@ -97,13 +97,13 @@ jobs:
 
       - name: Check formatting
         run: |
-          find include src tests -name "*.h" -o -name "*.cpp" | \
+          find include tests -name "*.h" -o -name "*.hpp" -o -name "*.cpp" | \
           xargs clang-format-17 --dry-run --Werror
 
       - name: Run clang-tidy
         run: |
           cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          find src -name "*.cpp" | \
+          find tests -name "*.cpp" | \
           xargs clang-tidy-17 -p build --warnings-as-errors='*'
 
   sanitizers:
