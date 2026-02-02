@@ -79,3 +79,13 @@ fabric.properties
 # Doxygen output
 doc/
 /.idea/copilot.data.migration.ask2agent.xml
+*.swp
+*.swo
+*~
+
+# Generated files
+include/dferone/version.h
+
+# OS
+.DS_Store
+Thumbs.db

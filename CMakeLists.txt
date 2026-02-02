@@ -1,9 +1,23 @@
 cmake_minimum_required(VERSION 3.14)
-project(dferone VERSION 1.0.0 LANGUAGES CXX)
+
+# Leggi versione da file VERSION
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" PROJECT_VERSION)
+string(STRIP "${PROJECT_VERSION}" PROJECT_VERSION)
+
+project(dferone VERSION ${PROJECT_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# ============================================================================
+# Genera version.h
+# ============================================================================
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/dferone/version.h.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/dferone/version.h
+        @ONLY
+)
 
 # ============================================================================
 # Header-only library target
@@ -48,7 +62,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     if(DFERONE_BUILD_DOCS)
         find_package(Doxygen)
         if(DOXYGEN_FOUND)
-            set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+            set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
             set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
             configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
 
