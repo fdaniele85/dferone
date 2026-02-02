@@ -34,3 +34,5 @@ HAVE_DOT               = NO
 CLASS_DIAGRAMS         = YES
 
 SEARCHENGINE           = YES
+FILE_PATTERNS = *.h
+RECURSIVE = YES
