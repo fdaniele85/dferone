@@ -106,7 +106,7 @@ namespace {
         std::vector<int> v {0,1,2,3,4,5,6,7,8,9};
         std::mt19937_64 rand(0);
         for (uint i = 0; i < 100; ++i) {
-            auto q = selectRandom(v, rand);
+            auto q = random_select(v, rand);
             ASSERT_TRUE(q != v.end());
             ASSERT_GE(*q, 0);
             ASSERT_LE(*q, 9);
@@ -114,7 +114,7 @@ namespace {
 
         for (uint i = 0; i < 100; ++i) {
             auto q = v.begin();
-            q = selectRandom(q, v.size(), rand);
+            q = random_select(q, v.size(), rand);
             ASSERT_TRUE(q != v.end());
             ASSERT_GE(*q, 0);
             ASSERT_LE(*q, 9);

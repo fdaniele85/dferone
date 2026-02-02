@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} - ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        compiler: [gcc, clang]
+        build_type: [Debug, Release]
+
+        exclude:
+          # Windows non supporta facilmente GCC/Clang in questo setup
+          - os: windows-latest
+            compiler: gcc
+          - os: windows-latest
+            compiler: clang
+
+        include:
+          # Aggiungi MSVC per Windows
+          - os: windows-latest
+            compiler: msvc
+            build_type: Debug
+          - os: windows-latest
+            compiler: msvc
+            build_type: Release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup GCC (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'gcc'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++-13
+          echo "CC=gcc-13" >> $GITHUB_ENV
+          echo "CXX=g++-13" >> $GITHUB_ENV
+
+      - name: Setup Clang (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17
+          echo "CC=clang-17" >> $GITHUB_ENV
+          echo "CXX=clang++-17" >> $GITHUB_ENV
+
+      - name: Setup GCC (macOS)
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc'
+        run: |
+          brew install gcc@13
+          echo "CC=gcc-13" >> $GITHUB_ENV
+          echo "CXX=g++-13" >> $GITHUB_ENV
+
+      - name: Setup Clang (macOS)
+        if: matrix.os == 'macos-latest' && matrix.compiler == 'clang'
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+
+      - name: Setup MSVC (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DDFERONE_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }} -j
+
+      - name: Run tests
+        working-directory: build
+        run: ctest --output-on-failure --build-config ${{ matrix.build_type }}
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Clang tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-17 clang-tidy-17
+
+      - name: Check formatting
+        run: |
+          find include src tests -name "*.h" -o -name "*.cpp" | \
+          xargs clang-format-17 --dry-run --Werror
+
+      - name: Run clang-tidy
+        run: |
+          cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          find src -name "*.cpp" | \
+          xargs clang-tidy-17 -p build --warnings-as-errors='*'
+
+  sanitizers:
+    name: Sanitizers
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        sanitizer: [address, undefined, thread]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17
+          echo "CC=clang-17" >> $GITHUB_ENV
+          echo "CXX=clang++-17" >> $GITHUB_ENV
+
+      - name: Configure with sanitizer
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDFERONE_BUILD_TESTS=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer"
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Run tests with sanitizer
+        working-directory: build
+        run: ctest --output-on-failure
