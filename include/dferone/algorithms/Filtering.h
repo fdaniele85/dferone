@@ -2,7 +2,7 @@
 
 #include "../welford.h"
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
 
     /*! @brief Filtering mechanism for the Local Search */
     class Filtering {
@@ -10,9 +10,7 @@ namespace dferone::grasp {
         /*! Constructor
          * @param q Threshold on the number of standard deviations away from the estimated mean percentage improvement
          */
-        explicit Filtering(double q) :
-                q_(q) {
-        }
+        explicit Filtering(double q) : q_(q) {}
 
         virtual ~Filtering() {};
 
@@ -30,13 +28,14 @@ namespace dferone::grasp {
         /// \param current Current solution cost
         /// \param incumbent Incumbent solution cost
         /// \return True if the local search must be performed, false otherwise
-        bool check(double current, double incumbent) const{
+        bool check(double current, double incumbent) const {
             double imp = (current - incumbent) / current;
             return imp < wa_.getMean() + q_ * wa_.getStdDev();
         }
+
     private:
         double q_;
         WelfordAlgorithm wa_;
     };
 
-}
+} // namespace dferone::algorithms

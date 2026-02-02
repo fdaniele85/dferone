@@ -6,14 +6,14 @@
 
 #include <cstdint>
 
-namespace dferone::grasp {
+namespace dferone::algorithms {
     template<class Solution>
     struct AlgorithmStatus {
         // New solution produced at this iter
-        Solution& new_solution_;
+        Solution &new_solution_;
 
         // Global best solution
-        Solution& best_solution_;
+        Solution &best_solution_;
 
         // Global iteration count
         std::size_t iteration_;
@@ -21,7 +21,6 @@ namespace dferone::grasp {
         // Whether the new sol was the new global best sol
         bool new_best_;
 
-        AlgorithmStatus(Solution& new_solution, Solution& best_solution)
-                : new_solution_{new_solution}, best_solution_{best_solution} {}
+        AlgorithmStatus(Solution &new_solution, Solution &best_solution) : new_solution_{new_solution}, best_solution_{best_solution} {}
     };
-} // namespace dferone::grasp
+} // namespace dferone::algorithms
