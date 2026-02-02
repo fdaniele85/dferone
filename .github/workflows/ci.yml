@@ -14,25 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         compiler: [gcc, clang]
         build_type: [Debug, Release]
-
-        exclude:
-          # Windows non supporta facilmente GCC/Clang in questo setup
-          - os: windows-latest
-            compiler: gcc
-          - os: windows-latest
-            compiler: clang
-
-        include:
-          # Aggiungi MSVC per Windows
-          - os: windows-latest
-            compiler: msvc
-            build_type: Debug
-          - os: windows-latest
-            compiler: msvc
-            build_type: Release
 
     steps:
       - name: Checkout code

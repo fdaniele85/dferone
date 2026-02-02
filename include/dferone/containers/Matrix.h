@@ -13,9 +13,7 @@ namespace dferone::containers {
     class Matrix {
     public:
         Matrix() = default;
-        Matrix(std::size_t rows, std::size_t cols, const T &initializer = T()) {
-            reset(rows, cols, initializer);
-        }
+        Matrix(std::size_t rows, std::size_t cols, const T &initializer = T()) { reset(rows, cols, initializer); }
 
         void reset(std::size_t rows, std::size_t cols, const T &initializer = T()) {
             rows_ = rows;
@@ -29,9 +27,7 @@ namespace dferone::containers {
             }
         }
 
-        virtual ~Matrix() {
-            delete [] data_;
-        }
+        virtual ~Matrix() { delete[] data_; }
 
         const T &operator()(std::size_t row, std::size_t col) const {
             assert(row < rows_);
@@ -47,12 +43,10 @@ namespace dferone::containers {
             return data_[cols_ * row + col];
         }
 
-
-
     private:
-        std::size_t rows_ {0};
-        std::size_t cols_ {0};
-        T* data_ {nullptr};
+        std::size_t rows_{0};
+        std::size_t cols_{0};
+        T *data_{nullptr};
     };
 
 } // namespace dferone::containers

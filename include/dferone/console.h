@@ -14,6 +14,7 @@
  *  @brief      This namespace contains miscellaneous console utilities.
  */
 namespace dferone::console {
+
     /** @enum   Colour
      *  @brief  Console colour codes.
      */

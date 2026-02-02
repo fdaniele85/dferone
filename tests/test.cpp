@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <dferone/containers/FiniteSet.h>
+#include <dferone/console.h>
 #include <dferone/containers/BestSet.h>
+#include <dferone/containers/FiniteSet.h>
 #include <dferone/containers/Matrix.h>
 #include <dferone/containers/SoterdVector.h>
 #include <dferone/containers/SymmetricMatrix.h>
 #include <dferone/containers/containers.h>
-#include <dferone/console.h>
 #include <dferone/random.h>
 #include <dferone/utilities.h>
 #include <dferone/welford.h>
@@ -83,7 +83,7 @@ namespace {
     }
 
     TEST(Containers, j_and_p) {
-        std::vector<int> v {1, 2, 3};
+        std::vector<int> v{1, 2, 3};
         std::ostringstream ss;
         join_and_print(v, ss);
         ASSERT_EQ(ss.str(), "1, 2, 3");
@@ -101,7 +101,7 @@ namespace {
     }
 
     TEST(random, select_random) {
-        std::vector<int> v {0,1,2,3,4,5,6,7,8,9};
+        std::vector<int> v{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         std::mt19937_64 rand(0);
         for (uint i = 0; i < 100; ++i) {
             auto q = random_select(v, rand);
@@ -118,7 +118,6 @@ namespace {
             ASSERT_LE(*q, 9);
         }
     }
-
 
     TEST(welford, mean) {
         dferone::WelfordAlgorithm wa;
@@ -163,4 +162,4 @@ namespace {
         ASSERT_EQ(sym_mat(0, 2), 3);
     }
 
-}
+} // namespace

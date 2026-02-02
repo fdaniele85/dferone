@@ -13,11 +13,9 @@ namespace dferone::containers {
     class SymmetricMatrix {
     public:
         SymmetricMatrix() = default;
-        explicit SymmetricMatrix(std::size_t rows, const T &initializer = T()) {
-            reset(rows, initializer);
-        }
+        explicit SymmetricMatrix(std::size_t rows, const T &initializer = T()) { reset(rows, initializer); }
 
-        void reset(std::size_t rows, const T &initializer = T())  {
+        void reset(std::size_t rows, const T &initializer = T()) {
             n_ = rows;
             std::size_t size = ((n_ * n_ + n_) / 2) * sizeof(T);
             data_ = new T[size];
@@ -28,9 +26,7 @@ namespace dferone::containers {
             }
         }
 
-        virtual ~SymmetricMatrix() {
-            delete [] data_;
-        }
+        virtual ~SymmetricMatrix() { delete[] data_; }
 
         const T &operator()(std::size_t row, std::size_t col) const {
             assert(row < n_);
@@ -47,8 +43,8 @@ namespace dferone::containers {
         }
 
     private:
-        std::size_t n_ {0};
-        T* data_ {nullptr};
+        std::size_t n_{0};
+        T *data_{nullptr};
     };
 
 } // namespace dferone::containers

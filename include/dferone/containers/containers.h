@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <iostream>
 #include <sstream>
 #include <tuple>
-#include <iostream>
 
 namespace dferone::containers {
     /** @brief  Tells whether a container contains a certain element.
@@ -25,15 +25,15 @@ namespace dferone::containers {
      *  @return              True iff \p element was found in \p container.
      */
     template<std::ranges::range Container, class T>
-    inline bool contains(const Container& container, const T& element) {
+    inline bool contains(const Container &container, const T &element) {
         return std::find(container.begin(), container.end(), element) != container.end();
     };
 
     template<std::ranges::range Container, class T>
-    inline bool contains(const Container& container, const T& element)
-    requires requires {
-        {container.count(element)} -> std::convertible_to<typename Container::size_type>;
-    }
+    inline bool contains(const Container &container, const T &element)
+        requires requires {
+            { container.count(element) } -> std::convertible_to<typename Container::size_type>;
+        }
     {
         return container.count(element) > 0u;
     };
@@ -41,16 +41,16 @@ namespace dferone::containers {
     namespace detail {
         // Prints a value to an output stream.
         template<class Value>
-        inline std::ostream& iterated_value(const Value& value, std::ostream& out) {
+        inline std::ostream &iterated_value(const Value &value, std::ostream &out) {
             return out << value;
         }
 
         // Prints a key-value pair to an output stream.
         template<class Key, class Value>
-        inline std::ostream& iterated_value(const std::pair<Key, Value>& key_val, std::ostream& out) {
+        inline std::ostream &iterated_value(const std::pair<Key, Value> &key_val, std::ostream &out) {
             return out << key_val.first << ": " << key_val.second;
         }
-    }
+    } // namespace detail
 
     /** @brief  Joins the elements of a container using the separator, and prints the result to
      *          an output stream.
@@ -67,9 +67,11 @@ namespace dferone::containers {
      *  @param  separator    A string interposed between two adjacent elements.
      */
     template<class Container>
-    inline void join_and_print(const Container& container, std::ostream& out = std::cout, std::string separator = ", ") {
-        if(container.begin() == container.end()) { return; }
-        for(auto it = container.begin(); it != std::prev(container.end()); ++it) {
+    inline void join_and_print(const Container &container, std::ostream &out = std::cout, std::string separator = ", ") {
+        if (container.begin() == container.end()) {
+            return;
+        }
+        for (auto it = container.begin(); it != std::prev(container.end()); ++it) {
             detail::iterated_value(*it, out) << separator;
         }
         auto last = std::prev(container.end());
@@ -90,7 +92,7 @@ namespace dferone::containers {
      *  @param  separator    A string interposed between two adjacent elements.
      */
     template<typename Container>
-    inline void join_and_print(const Container& container, std::string separator) {
+    inline void join_and_print(const Container &container, std::string separator) {
         join_and_print(container, std::cout, separator);
     }
 
@@ -102,40 +104,41 @@ namespace dferone::containers {
     }
 
     /** @brief  Iterates over an iterable container and yields both the index and
-    *          the element.
-    *
-    *          This method works analogously to Python's enumerate().
-    *          The code below is not mine, but by Nathan Reed and it was
-    *          origianlly available at http://reedbeta.com/blog/python-like-enumerate-in-cpp17/
-    *
-    *  @tparam Container   The container type.
-    *  @param  iterable    An instance of the iterable container.
-    *  @return             An anonymous struct implementing begin() and end(). When passed in
-    *                      a range-based for loop, each element gives a tuple whose second element
-    *                      is an iterable element, and whose first element is the corresponding
-    *                      index.
-    */
-    template<   typename Container,
-            typename Iter = decltype(std::begin(std::declval<Container>())),
-            typename = decltype(std::end(std::declval<Container>()))>
-    constexpr auto enumerate(Container && iterable) {
+     *          the element.
+     *
+     *          This method works analogously to Python's enumerate().
+     *          The code below is not mine, but by Nathan Reed and it was
+     *          origianlly available at http://reedbeta.com/blog/python-like-enumerate-in-cpp17/
+     *
+     *  @tparam Container   The container type.
+     *  @param  iterable    An instance of the iterable container.
+     *  @return             An anonymous struct implementing begin() and end(). When passed in
+     *                      a range-based for loop, each element gives a tuple whose second element
+     *                      is an iterable element, and whose first element is the corresponding
+     *                      index.
+     */
+    template<typename Container, typename Iter = decltype(std::begin(std::declval<Container>())), typename = decltype(std::end(std::declval<Container>()))>
+    constexpr auto enumerate(Container &&iterable) {
         struct iterator {
             std::size_t i;
             Iter iter;
 
-            bool operator!=(const iterator& other) const { return iter != other.iter; }
-            void operator++() { ++i; ++iter; }
+            bool operator!=(const iterator &other) const { return iter != other.iter; }
+            void operator++() {
+                ++i;
+                ++iter;
+            }
             auto operator*() const { return std::tie(i, *iter); }
         };
 
         struct iterable_wrapper {
             Container iterable;
 
-            auto begin() { return iterator{ 0u, std::begin(iterable) }; }
-            auto end() { return iterator{ 0u, std::end(iterable) }; }
+            auto begin() { return iterator{0u, std::begin(iterable)}; }
+            auto end() { return iterator{0u, std::end(iterable)}; }
         };
 
-        return iterable_wrapper{ std::forward<Container>(iterable) };
+        return iterable_wrapper{std::forward<Container>(iterable)};
     }
 
-}
+} // namespace dferone::containers
