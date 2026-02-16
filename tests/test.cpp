@@ -8,7 +8,6 @@
 #include <dferone/containers/SymmetricMatrix.h>
 #include <dferone/containers/containers.h>
 #include <dferone/random.h>
-#include <dferone/utilities.h>
 #include <dferone/welford.h>
 #include <iterator>
 
@@ -138,14 +137,9 @@ namespace {
         variance /= x.size();
         std_dev = std::sqrt(variance);
 
-        ASSERT_DOUBLE_EQ(mean, wa.getMean());
+        ASSERT_DOUBLE_EQ(mean, wa.get_mean());
         ASSERT_DOUBLE_EQ(variance, wa.getVariance());
         ASSERT_DOUBLE_EQ(std_dev, wa.getStdDev());
-    }
-
-    TEST(lik_unl, lik) {
-        ASSERT_TRUE(likely(0 == 0));
-        ASSERT_FALSE(unlikely(0 == 1));
     }
 
     TEST(Mat, mat) {

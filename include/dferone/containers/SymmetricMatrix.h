@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <vector>
 
 namespace dferone::containers {
 

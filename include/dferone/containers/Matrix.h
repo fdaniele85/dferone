@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <vector>
 
 namespace dferone::containers {
 
@@ -20,8 +21,8 @@ namespace dferone::containers {
             cols_ = cols;
             std::size_t size = rows_ * cols_;
             data_.resize(size);
-            for (uint i = 0; i < rows_; ++i) {
-                for (uint j = 0; j < cols_; ++j) {
+            for (auto i = 0u; i < rows_; ++i) {
+                for (auto j = 0u; j < cols_; ++j) {
                     this->operator()(i, j) = initializer;
                 }
             }

@@ -30,7 +30,7 @@ namespace dferone::algorithms {
         /// \return True if the local search must be performed, false otherwise
         bool check(double current, double incumbent) const {
             double imp = (current - incumbent) / current;
-            return imp < wa_.getMean() + q_ * wa_.getStdDev();
+            return imp < wa_.get_mean() + q_ * wa_.getStdDev();
         }
 
     private:
