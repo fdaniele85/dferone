@@ -4,7 +4,7 @@
 #include <dferone/containers/BestSet.h>
 #include <dferone/containers/FiniteSet.h>
 #include <dferone/containers/Matrix.h>
-#include <dferone/containers/SoterdVector.h>
+#include <dferone/containers/SortedVector.h>
 #include <dferone/containers/SymmetricMatrix.h>
 #include <dferone/containers/containers.h>
 #include <dferone/random.h>
