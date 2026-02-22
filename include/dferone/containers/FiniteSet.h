@@ -236,7 +236,8 @@ namespace dferone::containers {
     template<class T>
         requires std::integral<T>
     bool FiniteSet<T>::contains(value_type el) const noexcept {
-        return positions_[(size_type)el] < size_;
+        if (static_cast<size_type>(el) >= capacity_) return false;
+        return positions_[static_cast<size_type>(el)] < size_;
     }
 
     template<class T>
@@ -279,12 +280,6 @@ namespace dferone::containers {
     template<class T>
         requires std::integral<T>
     FiniteSet<T>::~FiniteSet() = default;
-
-    template<class T>
-        requires std::integral<T>
-    inline std::ostream &operator<<(std::ostream &os, const typename FiniteSet<T>::ComplementSet &cs) {
-        return os << std::to_string(cs);
-    }
 
     template<class T>
         requires std::integral<T>

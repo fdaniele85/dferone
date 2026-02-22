@@ -1,19 +1,33 @@
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 include(FetchContent)
 
-FetchContent_Declare(googletest
-        URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+# doctest
+FetchContent_Declare(
+        doctest
+        GIT_REPOSITORY https://github.com/doctest/doctest.git
+        GIT_TAG v2.4.11
 )
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(doctest)
 
 add_executable(dferone_tests
-        test.cpp
+        doctest_main.cpp
+        test_matrix.cpp
+        test_symmetric_matrix.cpp
+        test_finite_set.cpp
+        test_welford.cpp
+        test_bestset_sortedvector.cpp
+        test_tolerance_compile.cpp
 )
 
 target_link_libraries(dferone_tests PRIVATE
         dferone::dferone
-        GTest::gtest_main
+        doctest::doctest
 )
 
-include(GoogleTest)
-gtest_discover_tests(dferone_tests)
+# Warning utili solo per i test (facoltativo)
+target_compile_options(dferone_tests PRIVATE
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
+)
+
+include(CTest)
+add_test(NAME dferone_tests COMMAND dferone_tests)

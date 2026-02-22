@@ -22,13 +22,13 @@ namespace dferone {
         }
 
         /// \return The mean
-        [[nodiscard]] double getMean() const { return mean_; }
+        [[nodiscard]] double get_mean() const { return mean_; }
 
         /// \return The variance
-        [[nodiscard]] double getVariance() const { return sum_of_squares_ / static_cast<double>(count_); }
+        [[nodiscard]] double get_variance() const { return count_ > 0 ? sum_of_squares_ / static_cast<double>(count_) : 0.0; }
 
         /// \return The standard deviation
-        [[nodiscard]] double getStdDev() const { return std::sqrt(getVariance()); }
+        [[nodiscard]] double get_std_dev() const { return count_ > 0 ? std::sqrt(get_variance()) : 0.0; }
 
     private:
         std::size_t count_{0};

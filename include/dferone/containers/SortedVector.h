@@ -5,12 +5,12 @@
  *      Author: daniele
  */
 
-#ifndef DF_SORTED_VECTOR_H_
-#define DF_SORTED_VECTOR_H_
+#pragma once
 
 #include "containers.h"
 #include <functional>
 #include <vector>
+#include <cassert>
 
 namespace dferone::containers {
 
@@ -89,7 +89,7 @@ namespace dferone::containers {
         inline const_iterator end() const { return cend(); }
         /// @}
 
-        friend std::ostream &operator<<(std::ostream &out, const SortedVector<T, comparator> sorted_vector) {
+        friend std::ostream &operator<<(std::ostream &out, const SortedVector<T, comparator> &sorted_vector) {
             out << '[';
             join_and_print(sorted_vector, out);
             return out << ']';
@@ -108,5 +108,3 @@ namespace dferone::containers {
     };
 
 } // namespace dferone::containers
-
-#endif

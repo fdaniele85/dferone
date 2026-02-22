@@ -31,7 +31,7 @@ namespace dferone::ranges {
                 return *this;
             }
 
-            iterator &operator++(int) {
+            iterator operator++(int) {
                 auto old = *this;
                 ++it_;
                 return old;

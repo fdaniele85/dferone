@@ -9,7 +9,6 @@
 #define BESTSET_H_
 
 #include "containers.h"
-#include <concepts>
 #include <functional>
 #include <vector>
 
@@ -154,7 +153,7 @@ namespace dferone::containers {
         inline const_iterator end() const { return cend(); }
         /// @}
 
-        friend std::ostream &operator<<(std::ostream &out, const BestSet<T, comparator> bs) {
+        friend std::ostream &operator<<(std::ostream &out, const BestSet<T, comparator> &bs) {
             out << '[';
             join_and_print(bs, out);
             return out << ']';
