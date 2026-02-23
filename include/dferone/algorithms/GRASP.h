@@ -4,15 +4,17 @@
 
 #pragma once
 
-#include "AlgorithmStatus.h"
-#include "AlgorithmVisitor.h"
 #include "LocalSearch.h"
 #include "SolutionConstructor.h"
 #include <algorithm>
 #include <concepts>
+#include <dferone/cxxtimer.hpp>
+#include <dferone/tolerance.h>
 #include <memory>
 #include <random>
 #include <thread>
+#include <spdlog/spdlog.h>
+
 
 namespace dferone::algorithms {
     /** @brief This class models the GRASP algorithm solver
@@ -23,12 +25,12 @@ namespace dferone::algorithms {
      *                          * Solution(const ProblemInstance&) an empty-solution constructor.
      *                          * Solution(const Solution&) a copy constructor. Can be the implicit default.
      *                          * void operator=(const Solution& other) an assignment operator. Can be the implicit default.
-     *                          * double getCost() const, returning the cost of the solution (the smaller the better).
+     *                          * double get_cost() const, returning the cost of the solution (the smaller the better).
      */
     template<class ProblemInstance, std::copy_constructible Solution>
         requires requires(Solution s) {
-            { s.getCost() } -> std::convertible_to<double>;
-            std::assignable_from<Solution, Solution>;
+            { s.get_cost() } -> std::convertible_to<double>;
+            requires std::assignable_from<Solution &, Solution>;
         }
     class GRASP {
     public:
@@ -38,46 +40,45 @@ namespace dferone::algorithms {
          *
          * @param constructor SolutionConstructor<ProblemInstance, Solution> pointer
          */
-        void addSolutionConstructor(std::unique_ptr<SolutionConstructor<ProblemInstance, Solution>> &&constructor) { constructor_ = std::move(constructor); }
+        void add_solution_constructor(std::unique_ptr<SolutionConstructor<ProblemInstance, Solution>> &&constructor) { constructor_ = std::move(constructor); }
 
         /** @brief Add a Local search to improve a Solution at each GRASP iteration
          *
          * @param ls LocalSearch<Solution> pointer
          */
-        void addLocalSearch(std::unique_ptr<LocalSearch<Solution>> &&ls) { ls_ = std::move(ls); }
+        void add_local_search(std::unique_ptr<LocalSearch<Solution>> &&ls) { ls_ = std::move(ls); }
 
         Solution solve(std::uint32_t num_threads) {
             if (!constructor_) {
                 throw std::runtime_error("Cannot start GRASP without a constructor!");
             }
 
-            if (max_iterations_ == 0 && max_seconds_ == 0 && target_ <= std::numeric_limits<double>::min()) {
+            if (max_iterations_ == 0 && max_seconds_ == 0 && target_ <= std::numeric_limits<double>::lowest()) {
                 throw std::runtime_error("Stop condition not defined!");
             }
 
-            auto old_max_iterations = max_iterations_;
-            max_iterations_ = static_cast<unsigned int>(std::ceil(static_cast<double>(max_iterations_) / num_threads));
-
-            start_time_ = std::chrono::high_resolution_clock::now();
-
-            if (visitor_) {
-                visitor_->on_algorithm_start();
-            }
+            timer_.start();
 
             start_threads(num_threads);
 
-            max_iterations_ = old_max_iterations;
+            timer_.stop();
 
             return best_solution_;
         }
 
-        void setMaxIterations(std::size_t maxIterations) { max_iterations_ = maxIterations; }
+        void set_max_iterations(std::size_t maxIterations) { max_iterations_ = maxIterations; }
 
-        void setMaxSeconds(std::size_t maxSeconds) { max_seconds_ = maxSeconds; }
+        void set_max_seconds(std::size_t maxSeconds) { max_seconds_ = maxSeconds; }
 
-        void setTarget(double target) { target_ = target; }
+        void set_target(double target) { target_ = target; }
 
-        void addVisitor(std::unique_ptr<AlgorithmVisitor<Solution>> &&visitor) { visitor_ = std::move(visitor); }
+        void set_tolerance(double eps) { tolerance_ = Tolerance(eps); }
+
+        void set_logger(std::shared_ptr<spdlog::logger> logger) { logger_ = std::move(logger); }
+
+        [[nodiscard]] double get_time() const { return timer_.elapsed(); }
+
+         [[nodiscard]] double get_time_to_best() const { return time_to_best; }
 
     private:
         /*! @brief  Fire up a single thread.
@@ -91,60 +92,58 @@ namespace dferone::algorithms {
                 ls = ls_->clone();
             }
 
+            double best_thread_solution_cost = std::numeric_limits<double>::max();
+            Solution best_thread_solution(instance_);
+
             unsigned int current_thread_iteration = 0;
             while (true) {
                 ++current_thread_iteration;
-                auto global_iteration = 0;
-                {
-                    std::lock_guard _(current_iteration_mutex_);
-                    global_iteration = ++current_iteration_;
-                }
 
                 if (max_iterations_ > 0 && current_thread_iteration > max_iterations_) {
                     break;
                 }
 
-                if (max_seconds_ > 0) {
-                    // Calculate elapsed time
-                    auto current_time = std::chrono::high_resolution_clock::now();
-                    auto elapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(current_time - start_time_).count();
-                    if (elapsed_time > max_seconds_) {
-                        break;
-                    }
-                }
-
-                auto c = threadsafe_get_solution_cost(best_solution_, best_solution_mutex_);
-                if (c <= target_) {
+                if (max_seconds_ > 0 && timer_.elapsed() > max_seconds_) {
                     break;
                 }
 
-                auto s = solution_constructor->createSolution(instance_, mt);
-                auto new_best = updateBestSolution(s);
-                AlgorithmStatus<Solution> status(s, best_solution_);
-                status.new_best_ = new_best;
-                status.iteration_ = global_iteration;
-
-                auto perform_ls = true;
-                if (visitor_) {
-                    // Visitor can modify best_solution
-                    std::lock_guard _(best_solution_mutex_);
-                    perform_ls = visitor_->on_construction_end(status);
+                if (best_thread_solution_cost <= target_) {
+                    break;
                 }
+
+                auto s = solution_constructor->create_solution(instance_, mt);
 
                 if (ls) {
                     ls->search(s, mt);
                 }
 
-                status.new_best_ = updateBestSolution(s) || new_best;
-                if (visitor_) {
-                    // Visitor can modify best_solution
-                    std::lock_guard _(best_solution_mutex_);
-                    visitor_->on_iteration_end(status);
+                auto cost = s.get_cost();
+                bool updated = false;
+                if (tolerance_.less(cost, best_thread_solution_cost)) {
+                    best_thread_solution = s;
+                    best_thread_solution_cost = cost;
+                    {
+                        std::lock_guard _(best_solution_mutex_);
+                        if (tolerance_.less(cost, best_solution_cost_)) {
+                            best_solution_ = s;
+                            best_solution_cost_ = cost;
+                            time_to_best = timer_.elapsed();
+                            updated = true;
+                        }
+                    }
                 }
 
-                if (status.new_best_) {
+
+                if (logger_) {
                     std::lock_guard _(printing_mutex_);
-                    LOG(INFO) << "Iteration " << current_iteration_ << ": updating best solution to " << status.best_solution_.getCost();
+                    auto elapsed = timer_.elapsed();
+                    if (updated) {
+                        logger_->info("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, cost);
+                        last_logged_time_ = elapsed;
+                    } else if (last_logged_time_ + 10 < elapsed) {
+                        logger_->info("Thread {}, time {}: current best solution is {}", thread_id, elapsed, best_solution_cost_);
+                        last_logged_time_ = elapsed;
+                    }
                 }
             }
         }
@@ -185,23 +184,6 @@ namespace dferone::algorithms {
             return sol.getCost();
         }
 
-        /** @brief Checks if the best solution must be updated
-         *
-         * @param new_sol New solution to check
-         * @return True if the best solution has been updated, false otherwise
-         */
-        bool updateBestSolution(const Solution &new_sol) {
-            auto cost = new_sol.getCost();
-
-            std::lock_guard _(best_solution_mutex_);
-            auto best_cost = best_solution_.getCost();
-            if (cost < best_cost - eps_) {
-                best_solution_ = new_sol;
-                return true;
-            }
-            return false;
-        }
-
         /// Problem instance
         const ProblemInstance instance_;
 
@@ -217,8 +199,7 @@ namespace dferone::algorithms {
         /// Best solution found
         Solution best_solution_;
 
-        /// Current iteration
-        std::size_t current_iteration_{0};
+        double best_solution_cost_{std::numeric_limits<double>::max()};
 
         /// Maximum number of iterations (0 means infinity)
         std::size_t max_iterations_{0};
@@ -234,14 +215,15 @@ namespace dferone::algorithms {
 
         std::mutex printing_mutex_;
 
-        std::mutex current_iteration_mutex_;
+        double last_logged_time_{0.0};
 
-        std::chrono::time_point<std::chrono::high_resolution_clock> start_time_;
+        cxxtimer::Timer timer_;
 
-        /*! @brief Precision to use when comparing solution scores. */
-        static constexpr double eps_ = 1e-6;
+        /// Tolerance for comparing solution costs
+        Tolerance tolerance_{1e-6};
 
-        /// Visitor
-        std::unique_ptr<AlgorithmVisitor<Solution>> visitor_{nullptr};
+        double time_to_best{0.0};
+
+        std::shared_ptr<spdlog::logger> logger_ {nullptr};
     };
 } // namespace dferone::algorithms

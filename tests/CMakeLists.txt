@@ -17,6 +17,7 @@ add_executable(dferone_tests
         test_welford.cpp
         test_bestset_sortedvector.cpp
         test_tolerance_compile.cpp
+        test_grasp.cpp
 )
 
 target_link_libraries(dferone_tests PRIVATE
