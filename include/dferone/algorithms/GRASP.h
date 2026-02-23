@@ -75,7 +75,7 @@ namespace dferone::algorithms {
 
         void set_tolerance(double eps) { tolerance_ = Tolerance(eps); }
 
-        void set_logger(LogFunction logger) { logger_ = std::move(logger); }
+        void set_logger(LogFunction logger, const int log_interval = 30) { logger_ = std::move(logger); log_interval_ = log_interval; }
 
         [[nodiscard]] double get_time() const { return timer_.elapsed(); }
 
@@ -141,7 +141,7 @@ namespace dferone::algorithms {
                     if (updated) {
                         logger_(std::format("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, cost));
                         last_logged_time_ = elapsed;
-                    } else if (last_logged_time_ + 10 < elapsed) {
+                    } else if (last_logged_time_ + log_interval_ < elapsed) {
                         logger_(std::format("Thread {}, time {}: current best solution is {}", thread_id, elapsed, best_solution_cost_));
                         last_logged_time_ = elapsed;
                     }
@@ -226,5 +226,7 @@ namespace dferone::algorithms {
         double time_to_best{0.0};
 
         LogFunction logger_;
+
+        int log_interval_ { 30 };
     };
 } // namespace dferone::algorithms
