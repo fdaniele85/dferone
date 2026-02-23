@@ -6,13 +6,6 @@ string(STRIP "${PROJECT_VERSION}" PROJECT_VERSION)
 
 project(dferone VERSION ${PROJECT_VERSION} LANGUAGES CXX)
 
-include(FetchContent)
-FetchContent_Declare(spdlog
-        URL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
-FetchContent_MakeAvailable(spdlog)
-
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -39,8 +32,6 @@ target_include_directories(dferone INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-
-target_link_libraries(dferone INTERFACE spdlog::spdlog)
 
 # C++20 requirement
 target_compile_features(dferone INTERFACE cxx_std_20)

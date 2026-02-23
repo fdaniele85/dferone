@@ -10,11 +10,10 @@
 #include <concepts>
 #include <dferone/cxxtimer.hpp>
 #include <dferone/tolerance.h>
+#include <functional>
 #include <memory>
 #include <random>
 #include <thread>
-#include <spdlog/spdlog.h>
-
 
 namespace dferone::algorithms {
     /** @brief This class models the GRASP algorithm solver
@@ -34,6 +33,8 @@ namespace dferone::algorithms {
         }
     class GRASP {
     public:
+        using LogFunction = std::function<void(std::string_view)>;
+
         GRASP(const ProblemInstance &instance, unsigned int seed) : instance_(instance), generator_(seed), best_solution_(instance) {}
 
         /** @brief Add a Solution Costructor to construct a Solution at each GRASP iteration
@@ -74,7 +75,7 @@ namespace dferone::algorithms {
 
         void set_tolerance(double eps) { tolerance_ = Tolerance(eps); }
 
-        void set_logger(std::shared_ptr<spdlog::logger> logger) { logger_ = std::move(logger); }
+        void set_logger(LogFunction logger) { logger_ = std::move(logger); }
 
         [[nodiscard]] double get_time() const { return timer_.elapsed(); }
 
@@ -138,10 +139,10 @@ namespace dferone::algorithms {
                     std::lock_guard _(printing_mutex_);
                     auto elapsed = timer_.elapsed();
                     if (updated) {
-                        logger_->info("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, cost);
+                        logger_(std::format("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, cost));
                         last_logged_time_ = elapsed;
                     } else if (last_logged_time_ + 10 < elapsed) {
-                        logger_->info("Thread {}, time {}: current best solution is {}", thread_id, elapsed, best_solution_cost_);
+                        logger_(std::format("Thread {}, time {}: current best solution is {}", thread_id, elapsed, best_solution_cost_));
                         last_logged_time_ = elapsed;
                     }
                 }
@@ -224,6 +225,6 @@ namespace dferone::algorithms {
 
         double time_to_best{0.0};
 
-        std::shared_ptr<spdlog::logger> logger_ {nullptr};
+        LogFunction logger_;
     };
 } // namespace dferone::algorithms

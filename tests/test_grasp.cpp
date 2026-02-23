@@ -15,7 +15,7 @@ private:
 };
 class DummySolutionConstructor : public dferone::algorithms::SolutionConstructor<DummyInstance, DummySolution> {
 public:
-    [[nodiscard]] DummySolution create_solution(const DummyInstance &instance, std::mt19937 &mt) override { return DummySolution(instance); }
+    [[nodiscard]] DummySolution create_solution(const DummyInstance &instance, std::mt19937 &) override { return DummySolution(instance); }
 
     [[nodiscard]] std::unique_ptr<dferone::algorithms::SolutionConstructor<DummyInstance, DummySolution>> clone() const override {
         return std::make_unique<DummySolutionConstructor>(*this);
@@ -23,7 +23,7 @@ public:
 };
 class DummyLocalSearch : public dferone::algorithms::LocalSearch<DummySolution> {
 public:
-    void search(DummySolution &sol, std::mt19937 &mt) override { sol.set_cost(sol.get_cost() - 1); }
+    void search(DummySolution &sol, std::mt19937 &) override { sol.set_cost(sol.get_cost() - 1); }
     [[nodiscard]] std::unique_ptr<dferone::algorithms::LocalSearch<DummySolution>> clone() const override {
         return std::make_unique<DummyLocalSearch>(*this);
     }
