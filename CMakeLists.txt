@@ -8,7 +8,8 @@ project(dferone VERSION ${PROJECT_VERSION} LANGUAGES CXX)
 
 include(FetchContent)
 FetchContent_Declare(spdlog
-        URL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz)
+        URL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_MakeAvailable(spdlog)
 
 
