@@ -94,7 +94,6 @@ namespace dferone::algorithms {
             }
 
             double best_thread_solution_cost = std::numeric_limits<double>::max();
-            Solution best_thread_solution(instance_);
 
             unsigned int current_thread_iteration = 0;
             while (true) {
@@ -136,7 +135,6 @@ namespace dferone::algorithms {
                 auto cost = s.get_cost();
                 bool updated = false;
                 if (tolerance_.less(cost, best_thread_solution_cost)) {
-                    best_thread_solution = s;
                     best_thread_solution_cost = cost;
                     {
                         std::lock_guard _(best_solution_mutex_);
