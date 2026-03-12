@@ -111,25 +111,10 @@ namespace dferone::algorithms {
                     break;
                 }
 
-                if (logger_) {
-                    std::lock_guard _(printing_mutex_);
-                    logger_(std::format("Thread {}: starting iteration", thread_id));
-                }
-
                 auto s = solution_constructor->create_solution(instance_, mt);
-
-                if (logger_) {
-                    std::lock_guard _(printing_mutex_);
-                    logger_(std::format("Thread {}: construction end", thread_id));
-                }
 
                 if (ls) {
                     ls->search(s, mt);
-                }
-
-                if (logger_) {
-                    std::lock_guard _(printing_mutex_);
-                    logger_(std::format("Thread {}: ls end", thread_id));
                 }
 
                 auto cost = s.get_cost();
@@ -158,11 +143,6 @@ namespace dferone::algorithms {
                         logger_(std::format("Thread {}, time {}: current best solution is {}", thread_id, elapsed, best_solution_cost_));
                         last_logged_time_ = elapsed;
                     }
-                }
-
-                if (logger_) {
-                    std::lock_guard _(printing_mutex_);
-                    logger_(std::format("Thread {}: ending iteration", thread_id));
                 }
 
             }
