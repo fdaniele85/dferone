@@ -52,12 +52,12 @@ namespace dferone::random {
     /// @brief Select a random element uniformly from a sized range.
     /// @return Iterator to selected element.
     template<SizedRange Container, URBG Rng>
-    auto random_select(const Container &c, Rng &rng) {
+    auto random_select(const Container &c, Rng &rng) -> std::ranges::range_reference_t<const Container> {
         assert(!c.empty());
         std::uniform_int_distribution<std::size_t> dis(0, c.size() - 1);
         auto it = std::ranges::cbegin(c);
         std::advance(it, dis(rng));
-        return it;
+        return *it;
     }
 
     /// @brief Select a random iterator uniformly from a sequence of given size.
