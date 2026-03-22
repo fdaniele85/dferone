@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <limits>
+#include <sstream>
 #include <string>
 #include <tuple>
-#include <sstream>
-#include <limits>
 
 namespace dferone {
     namespace detail {
@@ -20,6 +20,11 @@ namespace dferone {
         inline void print_value(std::ostream &out, const std::pair<Key, Value> &kv) {
             out << kv.first << ": " << kv.second;
         }
+
+        template<typename T>
+        concept Streamable = requires(std::ostream &os, const T &obj) {
+            { os << obj } -> std::convertible_to<std::ostream &>;
+        };
     } // namespace detail
 
     /** @brief  Joins the elements of a container into a string, with an optional
@@ -64,19 +69,19 @@ namespace dferone {
 
 #if !defined(__cpp_lib_ranges_enumerate) || __cpp_lib_ranges_enumerate < 202302L
     /** @brief  Iterates over an iterable container and yields both the index and
-  *          the element.
-  *
-  *          This method works analogously to Python's enumerate().
-  *          The code below is not mine, but by Nathan Reed and it was
-  *          origianlly available at http://reedbeta.com/blog/python-like-enumerate-in-cpp17/
-  *
-  *  @tparam Container   The container type.
-  *  @param  iterable    An instance of the iterable container.
-  *  @return             An anonymous struct implementing begin() and end(). When passed in
-  *                      a range-based for loop, each element gives a tuple whose second element
-  *                      is an iterable element, and whose first element is the corresponding
-  *                      index.
-  */
+     *          the element.
+     *
+     *          This method works analogously to Python's enumerate().
+     *          The code below is not mine, but by Nathan Reed and it was
+     *          origianlly available at http://reedbeta.com/blog/python-like-enumerate-in-cpp17/
+     *
+     *  @tparam Container   The container type.
+     *  @param  iterable    An instance of the iterable container.
+     *  @return             An anonymous struct implementing begin() and end(). When passed in
+     *                      a range-based for loop, each element gives a tuple whose second element
+     *                      is an iterable element, and whose first element is the corresponding
+     *                      index.
+     */
     template<typename Container, typename Iter = decltype(std::begin(std::declval<Container>())), typename = decltype(std::end(std::declval<Container>()))>
     constexpr auto enumerate(Container &&iterable) {
         struct iterator {
@@ -104,20 +109,20 @@ namespace dferone {
 
 #if !defined(__cpp_lib_ranges_contains) || __cpp_lib_ranges_contains < 202207L
     /** @brief  Tells whether a container contains a certain element.
-  *
-  *  The standard library's functions to find elements (e.g. std::find)
-  *  always return an iterator. Sometimes, though, we just want to know
-  *  whether an element is in a container or not. This helper function
-  *  lets us do this in a concise way. This function also has specialisation
-  *  for when the container implements a .count() method, i.e. a more
-  *  efficient way of searching elements than simple linear search.
-  *
-  *  @tparam Container    Container type.
-  *  @tparam T            Containee type.
-  *  @param  container    The container.
-  *  @param  element      The element we are searching in \p container.
-  *  @return              True iff \p element was found in \p container.
-  */
+     *
+     *  The standard library's functions to find elements (e.g. std::find)
+     *  always return an iterator. Sometimes, though, we just want to know
+     *  whether an element is in a container or not. This helper function
+     *  lets us do this in a concise way. This function also has specialisation
+     *  for when the container implements a .count() method, i.e. a more
+     *  efficient way of searching elements than simple linear search.
+     *
+     *  @tparam Container    Container type.
+     *  @tparam T            Containee type.
+     *  @param  container    The container.
+     *  @param  element      The element we are searching in \p container.
+     *  @return              True iff \p element was found in \p container.
+     */
     template<std::ranges::range Container, class T>
     inline bool contains(const Container &container, const T &element) {
         return std::find(container.begin(), container.end(), element) != container.end();
@@ -126,22 +131,28 @@ namespace dferone {
     template<std::ranges::range Container, class T>
     inline bool contains(const Container &container, const T &element)
         requires requires {
-        { container.count(element) } -> std::convertible_to<typename Container::size_type>;
-    }
-{
-    return container.count(element) > 0u;
-};
+            { container.count(element) } -> std::convertible_to<typename Container::size_type>;
+        }
+    {
+        return container.count(element) > 0u;
+    };
 #endif
 
     /** @brief  Skips a certain number of lines from an input file stream.
- *
- *  @param stream    The file stream.
- *  @param how_many  Number of lines to skip.
- */
+     *
+     *  @param stream    The file stream.
+     *  @param how_many  Number of lines to skip.
+     */
     inline void skip_lines(std::istream &stream, const std::size_t how_many = 1u) {
         for (auto i = 0u; i < how_many; ++i) {
             stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
     }
 
-}
+    template<detail::Streamable T>
+    std::string to_string(const T &obj) {
+        std::ostringstream ss;
+        ss << obj;
+        return ss.str();
+    }
+} // namespace dferone
