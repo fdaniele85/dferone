@@ -38,11 +38,11 @@ namespace dferone {
      *  @return             The joined string.
      */
     template<std::ranges::range Container, class Formatter = std::nullptr_t>
-    std::string join(const Container &container, const std::string_view separator = ", ", Formatter formatter = nullptr) {
+    std::string join(Container &&container, const std::string_view separator = ", ", Formatter formatter = nullptr) {
         std::ostringstream ss;
         bool first = true;
 
-        for (const auto &elem : container) {
+        for (auto &&elem : container) {
             if (!first)
                 ss << separator;
             first = false;
@@ -58,8 +58,8 @@ namespace dferone {
     }
 
     template<std::ranges::range Container, class Formatter>
-    std::string join(const Container &container, Formatter formatter) {
-        return join(container, ", ", formatter);
+    std::string join(Container &&container, Formatter formatter) {
+        return join(std::forward<Container>(container), ", ", formatter);
     }
 
 #if !defined(__cpp_lib_ranges_enumerate) || __cpp_lib_ranges_enumerate < 202302L

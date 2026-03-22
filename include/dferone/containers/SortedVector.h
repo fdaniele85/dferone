@@ -11,6 +11,7 @@
 #include <cassert>
 #include <functional>
 #include <vector>
+#include <algorithm>
 
 namespace dferone::containers {
 
@@ -102,7 +103,7 @@ namespace dferone::containers {
         std::vector<T> elements_;
 
         /// Serve a paragonare gli elementi
-        comparator c_;
+        const comparator c_;
     };
 
 } // namespace dferone::containers
