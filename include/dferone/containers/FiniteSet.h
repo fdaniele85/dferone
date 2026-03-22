@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "containers.h"
+#include <dferone/utils.h>
 #include <algorithm>
 #include <iostream>
 #include <iterator>
@@ -256,7 +256,7 @@ namespace dferone::containers {
     template<class T>
         requires std::integral<T>
     inline std::ostream &operator<<(std::ostream &os, const FiniteSet<T> &fs) {
-        return os << '{' << dferone::containers::to_string(fs) << '}';
+        return os << '{' << dferone::join(fs) << '}';
     }
 
     template<class T>

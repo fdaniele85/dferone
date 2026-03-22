@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include "containers.h"
+#include <dferone/utils.h>
+#include <cassert>
 #include <functional>
 #include <vector>
-#include <cassert>
 
 namespace dferone::containers {
 
@@ -90,9 +90,7 @@ namespace dferone::containers {
         /// @}
 
         friend std::ostream &operator<<(std::ostream &out, const SortedVector<T, comparator> &sorted_vector) {
-            out << '[';
-            join_and_print(sorted_vector, out);
-            return out << ']';
+            return out << '[' << join(sorted_vector) << ']';
         }
 
         /// @brief Checks if the container is empty

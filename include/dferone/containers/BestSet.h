@@ -5,10 +5,9 @@
  *      Author: daniele
  */
 
-#ifndef BESTSET_H_
-#define BESTSET_H_
+#pragma once
 
-#include "containers.h"
+#include <dferone/utils.h>
 #include <functional>
 #include <vector>
 
@@ -154,9 +153,7 @@ namespace dferone::containers {
         /// @}
 
         friend std::ostream &operator<<(std::ostream &out, const BestSet<T, comparator> &bs) {
-            out << '[';
-            join_and_print(bs, out);
-            return out << ']';
+            return out << '[' << join(bs) << ']';
         }
 
         /// @brief Checks if the container is empty
@@ -192,5 +189,3 @@ namespace dferone::containers {
     };
 
 } // namespace dferone::containers
-
-#endif /* BESTSET_H_ */
