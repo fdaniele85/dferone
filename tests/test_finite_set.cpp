@@ -36,6 +36,41 @@ TEST_CASE("FiniteSet contains out-of-range is safe and false") {
     CHECK_FALSE(fs.contains(100));
 }
 
+TEST_CASE("FiniteSet supports shifted universe with first_element") {
+    using dferone::containers::FiniteSet;
+
+    FiniteSet<int> fs(5, 0, 5); // universe [5, 10)
+
+    CHECK(fs.capacity() == 5);
+    CHECK(fs.first_element() == 5);
+    CHECK_FALSE(fs.contains(4));
+    CHECK_FALSE(fs.contains(10));
+
+    fs.add(5);
+    fs.add(9);
+    fs.add(9);
+
+    CHECK(fs.size() == 2);
+    CHECK(fs.contains(5));
+    CHECK(fs.contains(9));
+
+    fs.remove(5);
+    CHECK_FALSE(fs.contains(5));
+    CHECK(fs.contains(9));
+}
+
+TEST_CASE("FiniteSet shifted constructor pre-fills from first_element") {
+    using dferone::containers::FiniteSet;
+
+    FiniteSet<int> fs(5, 3, 5); // [5, 10), initially {5,6,7}
+
+    CHECK(fs.size() == 3);
+    CHECK(fs.contains(5));
+    CHECK(fs.contains(6));
+    CHECK(fs.contains(7));
+    CHECK_FALSE(fs.contains(8));
+}
+
 TEST_CASE("FiniteSet behaves like a reference boolean set under random operations") {
     using dferone::containers::FiniteSet;
 

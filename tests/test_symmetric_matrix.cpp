@@ -7,11 +7,11 @@ TEST_CASE("SymmetricMatrix aliases (i,j) and (j,i)") {
 
     SymmetricMatrix<int> a(5, 0);
 
-    a(2, 3) = 7;
-    CHECK(a(3, 2) == 7);
+    a[2, 3] = 7;
+    CHECK(a[3, 2] == 7);
 
-    a(4, 0) = 99;
-    CHECK(a(0, 4) == 99);
+    a[4, 0] = 99;
+    CHECK(a[0, 4] == 99);
 }
 
 TEST_CASE("SymmetricMatrix initializes full symmetric view") {
@@ -20,7 +20,7 @@ TEST_CASE("SymmetricMatrix initializes full symmetric view") {
     SymmetricMatrix<int> a(4, 123);
     for (std::size_t i = 0; i < 4; ++i) {
         for (std::size_t j = 0; j < 4; ++j) {
-            CHECK(a(i, j) == 123);
+            CHECK(a[i, j] == 123);
         }
     }
 }
