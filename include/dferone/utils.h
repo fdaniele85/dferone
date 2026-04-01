@@ -63,6 +63,7 @@ namespace dferone {
     }
 
     template<std::ranges::range Container, class Formatter>
+        requires std::invocable<Formatter, std::ranges::range_value_t<Container>>
     std::string join(Container &&container, Formatter formatter) {
         return join(std::forward<Container>(container), ", ", formatter);
     }

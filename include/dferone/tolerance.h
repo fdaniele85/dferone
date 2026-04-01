@@ -25,6 +25,10 @@ namespace dferone {
 
         [[nodiscard]] bool different(const double a, const double b) const { return less(a, b) || less(b, a); }
 
+        [[nodiscard]] bool positive(const double a) const { return greater(a, 0); }
+
+        [[nodiscard]] bool negative(const double a) const { return less(a, 0); }
+
     private:
         double epsilon_;
     };
