@@ -12,8 +12,10 @@
 #include <dferone/cxxtimer.hpp>
 #include <dferone/random.h>
 #include <dferone/tolerance.h>
+#include <format>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <random>
 #include <thread>
 
@@ -37,7 +39,8 @@ namespace dferone::algorithms {
     public:
         using LogFunction = std::function<void(std::string_view)>;
 
-        GRASP(const ProblemInstance &instance, unsigned int seed) : instance_(instance), seed_(seed), best_solution_(Solution(instance)) {}
+        GRASP(const ProblemInstance &instance, unsigned int seed)
+            : instance_(instance), seed_(seed), best_solution_(instance) {}
 
         /** @brief Add a Solution Costructor to construct a Solution at each GRASP iteration
          *
@@ -66,7 +69,7 @@ namespace dferone::algorithms {
 
             timer_.stop();
 
-            return best_solution_.snapshot();
+            return threadsafe_clone_solution(best_solution_, best_solution_mutex_);
         }
 
         void set_max_iterations(std::size_t maxIterations) { max_iterations_ = maxIterations; }
@@ -77,95 +80,19 @@ namespace dferone::algorithms {
 
         void set_tolerance(double eps) { tolerance_ = Tolerance(eps); }
 
-        void set_logger(LogFunction logger, const int log_interval = 30) { logger_.set_logger(std::move(logger), log_interval); }
+        void set_logger(LogFunction logger, const int log_interval = 30) { logger_ = std::move(logger); log_interval_ = log_interval; }
 
         void set_visitor(std::unique_ptr<AlgorithmVisitor<Solution>> &&visitor) { visitor_ = std::move(visitor); }
 
         [[nodiscard]] double get_time() const { return timer_.elapsed(); }
 
-         [[nodiscard]] double get_time_to_best() const { return best_solution_.time_to_best(); }
+        [[nodiscard]] double get_time_to_best() const { return time_to_best; }
 
     private:
-        class ConcurrentBestTracker {
-        public:
-            explicit ConcurrentBestTracker(Solution initial_solution, double initial_cost = std::numeric_limits<double>::max())
-                : best_solution_(std::move(initial_solution)), best_solution_cost_(initial_cost) {}
-
-            [[nodiscard]] Solution snapshot() const {
-                std::lock_guard<std::mutex> _(mutex_);
-                return best_solution_;
-            }
-
-            [[nodiscard]] double best_cost() const {
-                std::lock_guard<std::mutex> _(mutex_);
-                return best_solution_cost_;
-            }
-
-            [[nodiscard]] double time_to_best() const {
-                std::lock_guard<std::mutex> _(mutex_);
-                return time_to_best_;
-            }
-
-            void reset(const Solution &solution, double cost) {
-                std::lock_guard<std::mutex> _(mutex_);
-                best_solution_ = solution;
-                best_solution_cost_ = cost;
-                time_to_best_ = 0.0;
-            }
-
-            [[nodiscard]] bool update_if_better(const Solution &solution, double cost, const dferone::Tolerance &tolerance, double elapsed) {
-                std::lock_guard<std::mutex> _(mutex_);
-                if (!tolerance.less(cost, best_solution_cost_)) {
-                    return false;
-                }
-
-                best_solution_ = solution;
-                best_solution_cost_ = cost;
-                time_to_best_ = elapsed;
-                return true;
-            }
-
-        private:
-            mutable std::mutex mutex_;
-            Solution best_solution_;
-            double best_solution_cost_;
-            double time_to_best_{0.0};
-        };
-
-        class PeriodicAlgorithmLogger {
-        public:
-            void set_logger(LogFunction logger, int log_interval = 30) {
-                std::lock_guard<std::mutex> _(mutex_);
-                logger_ = std::move(logger);
-                log_interval_ = log_interval;
-            }
-
-            void log_best_update(std::uint32_t thread_id, double elapsed, double cost) {
-                std::lock_guard<std::mutex> _(mutex_);
-                if (!logger_) {
-                    return;
-                }
-
-                logger_(std::format("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, cost));
-                last_logged_time_ = elapsed;
-            }
-
-            void log_current_best(std::uint32_t thread_id, double elapsed, double cost) {
-                std::lock_guard<std::mutex> _(mutex_);
-                if (!logger_ || last_logged_time_ + log_interval_ >= elapsed) {
-                    return;
-                }
-
-                logger_(std::format("Thread {}, time {}: current best solution is {}", thread_id, elapsed, cost));
-                last_logged_time_ = elapsed;
-            }
-
-        private:
-            std::mutex mutex_;
-            LogFunction logger_;
-            double last_logged_time_{0.0};
-            int log_interval_{30};
-        };
+        static Solution threadsafe_clone_solution(const Solution &sol, std::mutex &sol_mutex) {
+            std::lock_guard<std::mutex> _(sol_mutex);
+            return sol;
+        }
 
         /*! @brief  Fire up a single thread.
          *
@@ -208,19 +135,56 @@ namespace dferone::algorithms {
                 if (tolerance_.less(cost, best_thread_solution_cost)) {
                     best_thread_solution_cost = cost;
                     elapsed = timer_.elapsed();
-                    updated = best_solution_.update_if_better(s, cost, tolerance_, elapsed);
+                    {
+                        std::lock_guard _(best_solution_mutex_);
+                        if (tolerance_.less(cost, best_solution_cost_)) {
+                            best_solution_ = s;
+                            best_solution_cost_ = cost;
+                            time_to_best = elapsed;
+                            updated = true;
+                        }
+                    }
                 }
 
 
                 if (updated) {
                     notify_new_best(s, cost, elapsed);
-                    logger_.log_best_update(thread_id, elapsed, cost);
+                    log_best_update(thread_id, elapsed, cost);
                 } else {
                     elapsed = timer_.elapsed();
-                    logger_.log_current_best(thread_id, elapsed, best_solution_.best_cost());
+                    log_current_best(thread_id, elapsed);
                 }
 
             }
+        }
+
+        void log_best_update(std::uint32_t thread_id, double elapsed, double cost) {
+            if (!logger_) {
+                return;
+            }
+
+            std::lock_guard _(printing_mutex_);
+            logger_(std::format("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, cost));
+            last_logged_time_ = elapsed;
+        }
+
+        void log_current_best(std::uint32_t thread_id, double elapsed) {
+            if (!logger_) {
+                return;
+            }
+
+            std::lock_guard _(printing_mutex_);
+            if (last_logged_time_ + log_interval_ >= elapsed) {
+                return;
+            }
+
+            double best_cost;
+            {
+                std::lock_guard _(best_solution_mutex_);
+                best_cost = best_solution_cost_;
+            }
+            logger_(std::format("Thread {}, time {}: current best solution is {}", thread_id, elapsed, best_cost));
+            last_logged_time_ = elapsed;
         }
 
         void notify_new_best(const Solution &solution, double cost, double current_time) {
@@ -262,7 +226,8 @@ namespace dferone::algorithms {
         std::unique_ptr<LocalSearch<Solution>> ls_{nullptr};
 
         /// Best solution found
-        ConcurrentBestTracker best_solution_;
+        Solution best_solution_;
+        double best_solution_cost_{std::numeric_limits<double>::max()};
 
         /// Maximum number of iterations (0 means infinity)
         std::size_t max_iterations_{0};
@@ -278,7 +243,12 @@ namespace dferone::algorithms {
         /// Tolerance for comparing solution costs
         Tolerance tolerance_{1e-6};
 
-        PeriodicAlgorithmLogger logger_;
+        LogFunction logger_;
+        int log_interval_{30};
+        std::mutex best_solution_mutex_;
+        std::mutex printing_mutex_;
+        double last_logged_time_{0.0};
+        double time_to_best{0.0};
         std::unique_ptr<AlgorithmVisitor<Solution>> visitor_{nullptr};
         std::mutex visitor_mutex_;
     };
