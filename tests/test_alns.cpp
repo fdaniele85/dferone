@@ -66,6 +66,21 @@ public:
     }
 };
 
+struct DummyVisitorCall {
+    double cost;
+    double time;
+};
+
+class DummyVisitor : public dferone::algorithms::AlgorithmVisitor<DummySolution> {
+public:
+    explicit DummyVisitor(std::vector<DummyVisitorCall> &calls) : calls_(calls) {}
+
+    void on_new_best(const DummySolution &, double cost, double current_time) override { calls_.push_back({cost, current_time}); }
+
+private:
+    std::vector<DummyVisitorCall> &calls_;
+};
+
 } // namespace alns_test
 
 TEST_CASE("ALNS returns the start solution if no heuristics are configured") {
@@ -127,4 +142,24 @@ TEST_CASE("ALNS logs best-solution updates when a logger is configured") {
     CHECK(sol.get_cost() == doctest::Approx(9.0));
     CHECK(logs.size() == 1);
     CHECK(logs.front().find("updating best solution to") != std::string::npos);
+}
+
+TEST_CASE("ALNS notifies the visitor on new global best") {
+    alns_test::DummyParameters parameters;
+    parameters.max_iterations = 1;
+
+    dferone::algorithms::ALNS<alns_test::DummyInstance, alns_test::DummySolution, alns_test::DummyParameters> alns(
+        alns_test::DummyInstance(), parameters);
+    alns.add_destroy_method(std::make_unique<alns_test::DummyDestroyMethod>());
+    alns.add_repair_method(std::make_unique<alns_test::DummyRepairMethod>());
+
+    std::vector<alns_test::DummyVisitorCall> calls;
+    alns.set_visitor(std::make_unique<alns_test::DummyVisitor>(calls));
+
+    const auto sol = alns.search(1);
+
+    CHECK(sol.get_cost() == doctest::Approx(9.0));
+    CHECK(calls.size() == 1);
+    CHECK(calls.front().cost == doctest::Approx(9.0));
+    CHECK(calls.front().time >= 0.0);
 }

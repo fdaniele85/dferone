@@ -2,6 +2,7 @@
 
 #include <dferone/algorithms/GRASP.h>
 #include <dferone/algorithms/SolutionConstructor.h>
+#include <vector>
 
 class DummyInstance {};
 class DummySolution {
@@ -29,6 +30,21 @@ public:
     }
 };
 
+struct DummyVisitorCall {
+    double cost;
+    double time;
+};
+
+class DummyVisitor : public dferone::algorithms::AlgorithmVisitor<DummySolution> {
+public:
+    explicit DummyVisitor(std::vector<DummyVisitorCall> &calls) : calls_(calls) {}
+
+    void on_new_best(const DummySolution &, double cost, double current_time) override { calls_.push_back({cost, current_time}); }
+
+private:
+    std::vector<DummyVisitorCall> &calls_;
+};
+
 TEST_CASE("GRASP") {
     dferone::algorithms::GRASP<DummyInstance, DummySolution> grasp(DummyInstance(), {});
     grasp.add_solution_constructor(std::make_unique<DummySolutionConstructor>());
@@ -39,4 +55,21 @@ TEST_CASE("GRASP") {
     grasp.add_local_search(std::make_unique<DummyLocalSearch>());
     sol = grasp.solve(1);
     CHECK(sol.get_cost() == 99);
+}
+
+TEST_CASE("GRASP notifies the visitor on new global best") {
+    dferone::algorithms::GRASP<DummyInstance, DummySolution> grasp(DummyInstance(), {});
+    grasp.add_solution_constructor(std::make_unique<DummySolutionConstructor>());
+    grasp.add_local_search(std::make_unique<DummyLocalSearch>());
+    grasp.set_max_iterations(1);
+
+    std::vector<DummyVisitorCall> calls;
+    grasp.set_visitor(std::make_unique<DummyVisitor>(calls));
+
+    const auto sol = grasp.solve(1);
+
+    CHECK(sol.get_cost() == doctest::Approx(99.0));
+    CHECK(calls.size() == 1);
+    CHECK(calls.front().cost == doctest::Approx(99.0));
+    CHECK(calls.front().time >= 0.0);
 }

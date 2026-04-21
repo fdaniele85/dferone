@@ -4,38 +4,23 @@
 
 #pragma once
 
-#include "AlgorithmStatus.h"
-#include <string>
-#include <vector>
-
 namespace dferone::algorithms {
     /**
-     * This class implements a Visitor for the algorithm, to be called at
-     * specific points during the solution process.
+     * This class implements a Visitor for the algorithm, to be called when a
+     * new global best solution is found.
      *
      * @tparam Solution The solution type.
      */
     template<class Solution>
     struct AlgorithmVisitor {
         /**
-         * This method is called at the start of the algorithm, before the first iteration.
-         */
-        virtual void on_algorithm_start() = 0;
-
-        /**
-         * This method is called at the end of every construction.
+         * This method is called when a new global best solution is found.
          *
-         * @param alg_status An AlgorithmStatus object containing info on the current state of the algorithm.
-         * @return true      If the local search must be performed
+         * @param solution      The new best solution.
+         * @param cost          The cost of the new best solution.
+         * @param current_time  The elapsed execution time when the solution was found.
          */
-        virtual bool on_construction_end(AlgorithmStatus<Solution> &alg_status) = 0;
-
-        /**
-         * This method is called at the end of every iteration.
-         *
-         * @param alg_status    An AlgorithmStatus object containing info on the current state of the algorithm.
-         */
-        virtual void on_iteration_end(AlgorithmStatus<Solution> &alg_status) = 0;
+        virtual void on_new_best(const Solution &solution, double cost, double current_time) = 0;
 
         /**
          * Virtual destructor.

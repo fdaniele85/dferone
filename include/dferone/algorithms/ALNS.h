@@ -177,11 +177,21 @@ namespace dferone::algorithms {
                 local_temperature *= local_cooling_rate;
 
                 if (new_global_best) {
+                    notify_new_best(tmp_sol, new_sol_cost, elapsed);
                     logger_.log_best_update(thread_id, elapsed, new_sol_cost);
                 } else {
                     logger_.log_current_best(thread_id, elapsed, best_solution_.best_cost());
                 }
             }
+        }
+
+        void notify_new_best(const Solution &solution, double cost, double current_time) {
+            if (!visitor_) {
+                return;
+            }
+
+            std::lock_guard _(visitor_mutex_);
+            visitor_->on_new_best(solution, cost, current_time);
         }
 
         void start_threads(std::uint32_t num_threads) {
@@ -260,6 +270,7 @@ namespace dferone::algorithms {
 
         dferone::Tolerance tolerance_{1e-6};
         detail::PeriodicAlgorithmLogger logger_;
+        std::mutex visitor_mutex_;
     };
 
 } // namespace dferone::algorithms

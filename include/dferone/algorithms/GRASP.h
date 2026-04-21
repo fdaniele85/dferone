@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "AlgorithmVisitor.h"
 #include "LocalSearch.h"
 #include "SolutionConstructor.h"
 #include "detail/MetaheuristicCommon.h"
@@ -78,6 +79,8 @@ namespace dferone::algorithms {
 
         void set_logger(LogFunction logger, const int log_interval = 30) { logger_.set_logger(std::move(logger), log_interval); }
 
+        void set_visitor(std::unique_ptr<AlgorithmVisitor<Solution>> &&visitor) { visitor_ = std::move(visitor); }
+
         [[nodiscard]] double get_time() const { return timer_.elapsed(); }
 
          [[nodiscard]] double get_time_to_best() const { return best_solution_.time_to_best(); }
@@ -120,20 +123,32 @@ namespace dferone::algorithms {
 
                 auto cost = s.get_cost();
                 bool updated = false;
+                auto elapsed = 0.0;
                 if (tolerance_.less(cost, best_thread_solution_cost)) {
                     best_thread_solution_cost = cost;
-                    updated = best_solution_.update_if_better(s, cost, tolerance_, timer_.elapsed());
+                    elapsed = timer_.elapsed();
+                    updated = best_solution_.update_if_better(s, cost, tolerance_, elapsed);
                 }
 
 
-                const auto elapsed = timer_.elapsed();
                 if (updated) {
+                    notify_new_best(s, cost, elapsed);
                     logger_.log_best_update(thread_id, elapsed, cost);
                 } else {
+                    elapsed = timer_.elapsed();
                     logger_.log_current_best(thread_id, elapsed, best_solution_.best_cost());
                 }
 
             }
+        }
+
+        void notify_new_best(const Solution &solution, double cost, double current_time) {
+            if (!visitor_) {
+                return;
+            }
+
+            std::lock_guard _(visitor_mutex_);
+            visitor_->on_new_best(solution, cost, current_time);
         }
 
         /*! @brief  Fire up many threads.
@@ -183,5 +198,7 @@ namespace dferone::algorithms {
         Tolerance tolerance_{1e-6};
 
         detail::PeriodicAlgorithmLogger logger_;
+        std::unique_ptr<AlgorithmVisitor<Solution>> visitor_{nullptr};
+        std::mutex visitor_mutex_;
     };
 } // namespace dferone::algorithms
