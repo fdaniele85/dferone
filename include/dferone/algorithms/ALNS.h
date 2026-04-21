@@ -19,6 +19,7 @@
 #include "AlgorithmVisitor.h"
 #include "DestroyMethod.h"
 #include "RepairMethod.h"
+#include "detail/MetaheuristicCommon.h"
 #include <dferone/cxxtimer.hpp>
 #include <dferone/tolerance.h>
 
@@ -43,10 +44,10 @@ namespace dferone::algorithms {
     public:
         using DestroyMethodPtr = std::unique_ptr<DestroyMethod<Solution>>;
         using RepairMethodPtr = std::unique_ptr<RepairMethod<Solution>>;
-        using LogFunction = std::function<void(std::string_view)>;
+        using LogFunction = detail::LogFunction;
 
         explicit ALNS(const ProblemInstance &instance, const Parameters &parameters)
-            : instance_(instance), parameters_(parameters), best_solution_(instance) {}
+            : instance_(instance), parameters_(parameters), best_solution_(Solution(instance)) {}
 
         /// \brief Add the destroy method to the list of destroy methods
         /// \param destroy_method The destroy method to add
@@ -80,7 +81,7 @@ namespace dferone::algorithms {
             start_threads(num_threads);
             timer_.stop();
 
-            return threadsafe_clone_solution(best_solution_, best_solution_mtx_);
+            return best_solution_.snapshot();
         }
 
         Solution search(const std::uint32_t num_threads) {
@@ -92,29 +93,19 @@ namespace dferone::algorithms {
 
         void set_tolerance(double eps) { tolerance_ = dferone::Tolerance(eps); }
 
-        void set_logger(LogFunction logger, const int log_interval = 30) { logger_ = std::move(logger); log_interval_ = log_interval; }
+        void set_logger(LogFunction logger, const int log_interval = 30) { logger_.set_logger(std::move(logger), log_interval); }
 
         [[nodiscard]] double get_time() const { return timer_.elapsed(); }
 
-        [[nodiscard]] double get_time_to_best() const { return time_to_best; }
+        [[nodiscard]] double get_time_to_best() const { return best_solution_.time_to_best(); }
 
     private:
-        /// @brief Clones a solution (but first locks the corresponding mutex).
-        ///
-        /// @param sol       The solution to clone.
-        /// @param sol_mutex The mutex protecting the solution.
-        /// @returns         The new, cloned solution.
-        static Solution threadsafe_clone_solution(const Solution &sol, std::mutex &sol_mutex) {
-            std::lock_guard<std::mutex> _(sol_mutex);
-            return sol;
-        }
-
         static int roulette_wheel_selection(const std::vector<double> &weights, std::mt19937 &mt) {
             std::discrete_distribution<int> dist(weights.begin(), weights.end());
             return dist(mt);
         }
 
-        void start_thread(Solution current_solution, const std::uint32_t thread_id) {
+        void start_thread(Solution current_solution, const std::uint32_t thread_id, std::mt19937 &mt) {
             std::vector<DestroyMethodPtr> local_destroy_methods;
             std::vector<RepairMethodPtr> local_repair_methods;
             local_destroy_methods.reserve(destroy_methods_.size());
@@ -131,7 +122,6 @@ namespace dferone::algorithms {
             std::vector<double> destroy_weights(local_destroy_methods.size(), 1.0);
             std::vector<double> repair_weights(local_repair_methods.size(), 1.0);
 
-            auto &mt = mt_[thread_id];
             auto local_temperature = parameters_.initial_temperature;
             const auto local_score_decay = parameters_.score_decay;
             const auto local_cooling_rate = parameters_.cooling_rate;
@@ -165,6 +155,7 @@ namespace dferone::algorithms {
                     improved || should_accept(current_solution_cost, new_sol_cost, tmp_sol, mt, local_temperature);
 
                 bool new_global_best = false;
+                const auto elapsed = timer_.elapsed();
                 if (accepted) {
                     current_solution = tmp_sol;
                     current_solution_cost = new_sol_cost;
@@ -172,13 +163,7 @@ namespace dferone::algorithms {
                         best_thread_solution_cost = new_sol_cost;
                     }
 
-                    std::lock_guard<std::mutex> _(best_solution_mtx_);
-                    if (tolerance_.less(new_sol_cost, best_solution_cost_)) {
-                        best_solution_ = tmp_sol;
-                        best_solution_cost_ = new_sol_cost;
-                        time_to_best = timer_.elapsed();
-                        new_global_best = true;
-                    }
+                    new_global_best = best_solution_.update_if_better(tmp_sol, new_sol_cost, tolerance_, elapsed);
                 } else {
                     tmp_sol = current_solution;
                 }
@@ -191,21 +176,10 @@ namespace dferone::algorithms {
 
                 local_temperature *= local_cooling_rate;
 
-                if (logger_) {
-                    std::lock_guard _(printing_mutex_);
-                    const auto elapsed = timer_.elapsed();
-                    if (new_global_best) {
-                        logger_(std::format("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, new_sol_cost));
-                        last_logged_time_ = elapsed;
-                    } else if (last_logged_time_ + log_interval_ < elapsed) {
-                        double best_cost_snapshot;
-                        {
-                            std::lock_guard _(best_solution_mtx_);
-                            best_cost_snapshot = best_solution_cost_;
-                        }
-                        logger_(std::format("Thread {}, time {}: current best solution is {}", thread_id, elapsed, best_cost_snapshot));
-                        last_logged_time_ = elapsed;
-                    }
+                if (new_global_best) {
+                    logger_.log_best_update(thread_id, elapsed, new_sol_cost);
+                } else {
+                    logger_.log_current_best(thread_id, elapsed, best_solution_.best_cost());
                 }
             }
         }
@@ -215,11 +189,12 @@ namespace dferone::algorithms {
                 return;
             }
 
-            const auto start_solution = threadsafe_clone_solution(best_solution_, best_solution_mtx_);
+            const auto start_solution = best_solution_.snapshot();
+            auto generators = detail::make_thread_generators(parameters_.seed, num_threads);
             std::vector<std::jthread> threads(num_threads);
             for (auto i = 0U; i < num_threads; ++i) {
-                threads[i] = std::jthread([this, i, start_solution]() {
-                    start_thread(start_solution, i);
+                threads[i] = std::jthread([this, i, start_solution, &generators]() {
+                    start_thread(start_solution, i, generators[i]);
                 });
             }
 
@@ -231,18 +206,10 @@ namespace dferone::algorithms {
         const ProblemInstance &instance_;
         const Parameters &parameters_;
 
-        Solution best_solution_;
-
-        double best_solution_cost_{std::numeric_limits<double>::max()};
+        detail::ConcurrentBestTracker<Solution> best_solution_;
 
         std::vector<DestroyMethodPtr> destroy_methods_;
         std::vector<RepairMethodPtr> repairs_methods_;
-
-        /// Random engines
-        std::vector<std::mt19937> mt_;
-
-        // Mutexes
-        std::mutex best_solution_mtx_;
 
         /// \brief Timer of the algorithm
         cxxtimer::Timer timer_;
@@ -284,40 +251,15 @@ namespace dferone::algorithms {
 
         /// \brief Reset the internal parameters
         void reset_parameters(const Solution &solution, std::uint32_t num_threads) {
-            {
-                std::lock_guard<std::mutex> _(best_solution_mtx_);
-                best_solution_ = solution;
-                best_solution_cost_ = solution.get_cost();
-            }
-            time_to_best = 0.0;
-            last_logged_time_ = 0.0;
-
-            mt_.clear();
-            mt_.reserve(num_threads);
-
-            std::mt19937 generator(parameters_.seed);
-            for (auto i = 0U; i < num_threads; ++i) {
-                std::mt19937::result_type random_data[std::mt19937::state_size];
-                auto next = [&generator]() { return generator(); };
-                std::generate(std::begin(random_data), std::end(random_data), next);
-                std::seed_seq seeds(std::begin(random_data), std::end(random_data));
-                mt_.emplace_back(seeds);
-            }
+            static_cast<void>(num_threads);
+            best_solution_.reset(solution, solution.get_cost());
+            logger_.reset();
         }
 
         std::unique_ptr<AlgorithmVisitor<Solution>> visitor_{nullptr};
 
-        std::mutex printing_mutex_;
-
-        double last_logged_time_{0.0};
-
         dferone::Tolerance tolerance_{1e-6};
-
-        double time_to_best{0.0};
-
-        LogFunction logger_;
-
-        int log_interval_{30};
+        detail::PeriodicAlgorithmLogger logger_;
     };
 
 } // namespace dferone::algorithms
