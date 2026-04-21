@@ -19,8 +19,8 @@
 #include "AlgorithmVisitor.h"
 #include "DestroyMethod.h"
 #include "RepairMethod.h"
-#include "detail/MetaheuristicCommon.h"
 #include <dferone/cxxtimer.hpp>
+#include <dferone/random.h>
 #include <dferone/tolerance.h>
 
 namespace dferone::algorithms {
@@ -44,7 +44,7 @@ namespace dferone::algorithms {
     public:
         using DestroyMethodPtr = std::unique_ptr<DestroyMethod<Solution>>;
         using RepairMethodPtr = std::unique_ptr<RepairMethod<Solution>>;
-        using LogFunction = detail::LogFunction;
+        using LogFunction = std::function<void(std::string_view)>;
 
         explicit ALNS(const ProblemInstance &instance, const Parameters &parameters)
             : instance_(instance), parameters_(parameters), best_solution_(Solution(instance)) {}
@@ -100,6 +100,92 @@ namespace dferone::algorithms {
         [[nodiscard]] double get_time_to_best() const { return best_solution_.time_to_best(); }
 
     private:
+        class ConcurrentBestTracker {
+        public:
+            explicit ConcurrentBestTracker(Solution initial_solution, double initial_cost = std::numeric_limits<double>::max())
+                : best_solution_(std::move(initial_solution)), best_solution_cost_(initial_cost) {}
+
+            [[nodiscard]] Solution snapshot() const {
+                std::lock_guard<std::mutex> _(mutex_);
+                return best_solution_;
+            }
+
+            [[nodiscard]] double best_cost() const {
+                std::lock_guard<std::mutex> _(mutex_);
+                return best_solution_cost_;
+            }
+
+            [[nodiscard]] double time_to_best() const {
+                std::lock_guard<std::mutex> _(mutex_);
+                return time_to_best_;
+            }
+
+            void reset(const Solution &solution, double cost) {
+                std::lock_guard<std::mutex> _(mutex_);
+                best_solution_ = solution;
+                best_solution_cost_ = cost;
+                time_to_best_ = 0.0;
+            }
+
+            [[nodiscard]] bool update_if_better(const Solution &solution, double cost, const dferone::Tolerance &tolerance, double elapsed) {
+                std::lock_guard<std::mutex> _(mutex_);
+                if (!tolerance.less(cost, best_solution_cost_)) {
+                    return false;
+                }
+
+                best_solution_ = solution;
+                best_solution_cost_ = cost;
+                time_to_best_ = elapsed;
+                return true;
+            }
+
+        private:
+            mutable std::mutex mutex_;
+            Solution best_solution_;
+            double best_solution_cost_;
+            double time_to_best_{0.0};
+        };
+
+        class PeriodicAlgorithmLogger {
+        public:
+            void set_logger(LogFunction logger, int log_interval = 30) {
+                std::lock_guard<std::mutex> _(mutex_);
+                logger_ = std::move(logger);
+                log_interval_ = log_interval;
+            }
+
+            void reset() {
+                std::lock_guard<std::mutex> _(mutex_);
+                last_logged_time_ = 0.0;
+            }
+
+            void log_best_update(std::uint32_t thread_id, double elapsed, double cost) {
+                std::lock_guard<std::mutex> _(mutex_);
+                if (!logger_) {
+                    return;
+                }
+
+                logger_(std::format("Thread {}, time {}: updating best solution to {}", thread_id, elapsed, cost));
+                last_logged_time_ = elapsed;
+            }
+
+            void log_current_best(std::uint32_t thread_id, double elapsed, double cost) {
+                std::lock_guard<std::mutex> _(mutex_);
+                if (!logger_ || last_logged_time_ + log_interval_ >= elapsed) {
+                    return;
+                }
+
+                logger_(std::format("Thread {}, time {}: current best solution is {}", thread_id, elapsed, cost));
+                last_logged_time_ = elapsed;
+            }
+
+        private:
+            std::mutex mutex_;
+            LogFunction logger_;
+            double last_logged_time_{0.0};
+            int log_interval_{30};
+        };
+
         static int roulette_wheel_selection(const std::vector<double> &weights, std::mt19937 &mt) {
             std::discrete_distribution<int> dist(weights.begin(), weights.end());
             return dist(mt);
@@ -216,7 +302,7 @@ namespace dferone::algorithms {
         const ProblemInstance &instance_;
         const Parameters &parameters_;
 
-        detail::ConcurrentBestTracker<Solution> best_solution_;
+        ConcurrentBestTracker best_solution_;
 
         std::vector<DestroyMethodPtr> destroy_methods_;
         std::vector<RepairMethodPtr> repairs_methods_;
@@ -269,7 +355,7 @@ namespace dferone::algorithms {
         std::unique_ptr<AlgorithmVisitor<Solution>> visitor_{nullptr};
 
         dferone::Tolerance tolerance_{1e-6};
-        detail::PeriodicAlgorithmLogger logger_;
+        PeriodicAlgorithmLogger logger_;
         std::mutex visitor_mutex_;
     };
 
