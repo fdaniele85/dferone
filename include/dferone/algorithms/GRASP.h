@@ -37,7 +37,7 @@ namespace dferone::algorithms {
     public:
         using LogFunction = detail::LogFunction;
 
-        GRASP(const ProblemInstance &instance, unsigned int seed) : instance_(instance), generator_(seed), best_solution_(Solution(instance)) {}
+        GRASP(const ProblemInstance &instance, unsigned int seed) : instance_(instance), seed_(seed), best_solution_(Solution(instance)) {}
 
         /** @brief Add a Solution Costructor to construct a Solution at each GRASP iteration
          *
@@ -156,7 +156,7 @@ namespace dferone::algorithms {
          *  @param   num_threads   Number of threads to start
          */
         void start_threads(std::uint32_t num_threads) {
-            auto generators_ = detail::make_thread_generators(generator_, num_threads);
+            auto generators_ = dferone::random::make_generators(seed_, num_threads);
 
             std::vector<std::jthread> threads(num_threads);
             for (auto i = 0u; i < num_threads; ++i) {
@@ -171,8 +171,8 @@ namespace dferone::algorithms {
         /// Problem instance
         const ProblemInstance instance_;
 
-        /// Generator
-        mutable std::mt19937 generator_;
+        /// Master seed
+        unsigned int seed_;
 
         /// Constructor to clone in each thread
         std::unique_ptr<SolutionConstructor<ProblemInstance, Solution>> constructor_{nullptr};

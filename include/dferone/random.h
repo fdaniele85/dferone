@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <concepts>
 #include <iterator>
@@ -29,20 +28,28 @@ namespace dferone::random {
     //  Seeding utilities
     // ============================================================
 
-    /// @brief Create a strongly-seeded Mersenne Twister 64-bit PRNG.
+    /// @brief Derive a deterministic set of MT generators from a single seed.
     ///
-    /// Uses std::random_device to fill the entire MT state via seed_seq.
-    /// This is stronger than seeding with a single integer.
+    /// Each generator receives a full seed sequence derived from the master
+    /// generator initialized with @p seed.
     ///
-    /// @return a seeded std::mt19937_64 instance.
-    inline std::mt19937_64 make_seeded_mt() {
-        std::array<std::mt19937_64::result_type, std::mt19937_64::state_size> entropy{};
+    /// @param seed          master seed
+    /// @param num_generators number of generators to create
+    /// @return a vector of seeded std::mt19937 generators
+    inline std::vector<std::mt19937> make_generators(unsigned int seed, std::size_t num_generators) {
+        std::vector<std::mt19937> generators;
+        generators.reserve(num_generators);
 
-        std::random_device rd;
-        std::ranges::generate(entropy, std::ref(rd));
+        std::mt19937 master(seed);
+        for (auto i = 0U; i < num_generators; ++i) {
+            std::mt19937::result_type random_data[std::mt19937::state_size];
+            auto next = [&master]() { return master(); };
+            std::generate(std::begin(random_data), std::end(random_data), next);
+            std::seed_seq seq(std::begin(random_data), std::end(random_data));
+            generators.emplace_back(seq);
+        }
 
-        std::seed_seq seq(entropy.begin(), entropy.end());
-        return std::mt19937_64(seq);
+        return generators;
     }
 
     // ============================================================

@@ -200,7 +200,7 @@ namespace dferone::algorithms {
             }
 
             const auto start_solution = best_solution_.snapshot();
-            auto generators = detail::make_thread_generators(parameters_.seed, num_threads);
+            auto generators = dferone::random::make_generators(parameters_.seed, num_threads);
             std::vector<std::jthread> threads(num_threads);
             for (auto i = 0U; i < num_threads; ++i) {
                 threads[i] = std::jthread([this, i, start_solution, &generators]() {

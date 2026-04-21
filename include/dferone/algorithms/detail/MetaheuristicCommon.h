@@ -4,42 +4,20 @@
 
 #pragma once
 
-#include <algorithm>
 #include <format>
 #include <functional>
 #include <limits>
 #include <mutex>
-#include <random>
 #include <string>
 #include <string_view>
 #include <utility>
-#include <vector>
 
+#include <dferone/random.h>
 #include <dferone/tolerance.h>
 
 namespace dferone::algorithms::detail {
 
     using LogFunction = std::function<void(std::string_view)>;
-
-    inline std::vector<std::mt19937> make_thread_generators(std::mt19937 &generator, std::uint32_t num_threads) {
-        std::vector<std::mt19937> generators;
-        generators.reserve(num_threads);
-
-        for (auto i = 0U; i < num_threads; ++i) {
-            std::mt19937::result_type random_data[std::mt19937::state_size];
-            auto next = [&generator]() { return generator(); };
-            std::generate(std::begin(random_data), std::end(random_data), next);
-            std::seed_seq seeds(std::begin(random_data), std::end(random_data));
-            generators.emplace_back(seeds);
-        }
-
-        return generators;
-    }
-
-    inline std::vector<std::mt19937> make_thread_generators(unsigned int seed, std::uint32_t num_threads) {
-        std::mt19937 generator(seed);
-        return make_thread_generators(generator, num_threads);
-    }
 
     template<class Solution>
     class ConcurrentBestTracker {
