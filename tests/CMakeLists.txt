@@ -11,6 +11,7 @@ FetchContent_MakeAvailable(doctest)
 
 add_executable(dferone_tests
         doctest_main.cpp
+        test_alns.cpp
         test_matrix.cpp
         test_symmetric_matrix.cpp
         test_finite_set.cpp
