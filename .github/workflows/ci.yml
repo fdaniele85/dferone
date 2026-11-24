@@ -34,9 +34,9 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17
-          echo "CC=clang-17" >> $GITHUB_ENV
-          echo "CXX=clang++-17" >> $GITHUB_ENV
+          sudo apt-get install -y clang-18
+          echo "CC=clang-18" >> $GITHUB_ENV
+          echo "CXX=clang++-18" >> $GITHUB_ENV
 
       - name: Setup GCC (macOS)
         if: matrix.os == 'macos-latest' && matrix.compiler == 'gcc'
@@ -92,7 +92,7 @@ jobs:
         run: |
           cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           find tests -name "*.cpp" | \
-          xargs clang-tidy-17 -p build --warnings-as-errors='*'
+          xargs clang-tidy-18 -p build --warnings-as-errors='*'
 
   sanitizers:
     name: Sanitizers
@@ -109,9 +109,9 @@ jobs:
       - name: Setup Clang
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17
-          echo "CC=clang-17" >> $GITHUB_ENV
-          echo "CXX=clang++-17" >> $GITHUB_ENV
+          sudo apt-get install -y clang-18
+          echo "CC=clang-18" >> $GITHUB_ENV
+          echo "CXX=clang++-18" >> $GITHUB_ENV
 
       - name: Configure with sanitizer
         run: |
